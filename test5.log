@@ -1,0 +1,46 @@
+Project 'sakai-ng' contains extension with invalid name (lint).
+Automatically searching for and using Vitest configuration file.
+[33m>[39m Building...
+[32mÔêÜ[39m Building...
+[1mInitial chunk files[22m [2m | [22m[1mNames[22m            [2m | [22m [1mRaw size[22m
+[32mstyles.css[39m          [2m | [22m[2mstyles[22m           [2m | [22m [36m62.45 kB[39m[2m | [22m
+[32minit-testbed.js[39m     [2m | [22m[2minit-testbed[22m     [2m | [22m  [36m5.07 kB[39m[2m | [22m
+[32mvitest-mock-patch.js[39m[2m | [22m[2mvitest-mock-patch[22m[2m | [22m[36m974 bytes[39m[2m | [22m
+[32mspec-app.smoke.js[39m   [2m | [22m[2mspec-app.smoke[22m   [2m | [22m[36m235 bytes[39m[2m | [22m
+
+[1m [22m                   [2m | [22m[1mInitial total[22m    [2m | [22m [1m68.72 kB[22m
+
+Application bundle generation complete. [0.844 seconds] - 2026-09-16T16:04:36.001Z
+
+
+[1m[46m RUN [49m[22m [36mv4.0.8 [39m[90mD:/Claudia/Estudio/sakai-ng-21.0.0[39m
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Unhandled Errors ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Unhandled Error ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+Error: Cannot find package 'jsdom' imported from D:\Claudia\Estudio\sakai-ng-21.0.0\node_modules\.pnpm\vitest@4.0.8_@types+node@26_81a3b88217df9e398ebf6e0027f14506\node_modules\vitest\dist\chunks\index.DfKyPFVi.js
+ ÔØ» Object.getPackageJSONURL node:internal/modules/package_json_reader:301:9
+ ÔØ» packageResolve node:internal/modules/esm/resolve:768:81
+ ÔØ» moduleResolve node:internal/modules/esm/resolve:859:18
+ ÔØ» defaultResolve node:internal/modules/esm/resolve:992:11
+ ÔØ» #cachedDefaultResolve node:internal/modules/esm/loader:701:20
+ ÔØ» #resolveAndMaybeBlockOnLoaderThread node:internal/modules/esm/loader:721:38
+ ÔØ» ModuleLoader.resolveSync node:internal/modules/esm/loader:759:56
+ ÔØ» #resolve node:internal/modules/esm/loader:683:17
+ ÔØ» ModuleLoader.getOrCreateModuleJob node:internal/modules/esm/loader:603:35
+ ÔØ» node:internal/modules/esm/loader:632:32
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+Serialized Error: { code: 'ERR_MODULE_NOT_FOUND' }
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+
+[2m Test Files [22m [2mno tests[22m
+[2m      Tests [22m [2mno tests[22m
+[2m     Errors [22m [1m[31m1 error[39m[22m
+[2m   Start at [22m 12:04:36
+[2m   Duration [22m 163ms[2m (transform 0ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 0ms)[22m
+

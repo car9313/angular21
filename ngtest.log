@@ -1,0 +1,46 @@
+[1m[33mProject 'sakai-ng' contains extension with invalid name (lint).[39m[22m
+Using Vitest configuration file: D:\Claudia\Estudio\sakai-ng-21.0.0\vitest-base.config.ts
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m [2m | [22m[1mNames[22m            [2m | [22m [1mRaw size[22m
+[32mstyles.css[39m          [2m | [22m[2mstyles[22m           [2m | [22m [36m62.45 kB[39m[2m | [22m
+[32minit-testbed.js[39m     [2m | [22m[2minit-testbed[22m     [2m | [22m  [36m5.07 kB[39m[2m | [22m
+[32mvitest-mock-patch.js[39m[2m | [22m[2mvitest-mock-patch[22m[2m | [22m[36m974 bytes[39m[2m | [22m
+[32mspec-app.smoke.js[39m   [2m | [22m[2mspec-app.smoke[22m   [2m | [22m[36m235 bytes[39m[2m | [22m
+
+[1m [22m                   [2m | [22m[1mInitial total[22m    [2m | [22m [1m68.72 kB[22m
+
+Application bundle generation complete. [0.769 seconds] - 2026-09-16T16:17:03.673Z
+
+
+[1m[46m RUN [49m[22m [36mv4.0.8 [39m[90mD:/Claudia/Estudio/sakai-ng-21.0.0[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Unhandled Errors [49m[22m[31m⎯⎯⎯⎯⎯⎯[39m
+[31m[1m
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Unhandled Error [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mError[22m: Cannot find package 'jsdom' imported from D:\Claudia\Estudio\sakai-ng-21.0.0\node_modules\.pnpm\vitest@4.0.8_@types+node@26_81a3b88217df9e398ebf6e0027f14506\node_modules\vitest\dist\chunks\index.DfKyPFVi.js[39m
+[90m [2m❯[22m Object.getPackageJSONURL node:internal/modules/package_json_reader:[2m301:9[22m[39m
+[90m [2m❯[22m packageResolve node:internal/modules/esm/resolve:[2m768:81[22m[39m
+[90m [2m❯[22m moduleResolve node:internal/modules/esm/resolve:[2m859:18[22m[39m
+[90m [2m❯[22m defaultResolve node:internal/modules/esm/resolve:[2m992:11[22m[39m
+[90m [2m❯[22m #cachedDefaultResolve node:internal/modules/esm/loader:[2m701:20[22m[39m
+[90m [2m❯[22m #resolveAndMaybeBlockOnLoaderThread node:internal/modules/esm/loader:[2m721:38[22m[39m
+[90m [2m❯[22m ModuleLoader.resolveSync node:internal/modules/esm/loader:[2m759:56[22m[39m
+[90m [2m❯[22m #resolve node:internal/modules/esm/loader:[2m683:17[22m[39m
+[90m [2m❯[22m ModuleLoader.getOrCreateModuleJob node:internal/modules/esm/loader:[2m603:35[22m[39m
+[90m [2m❯[22m node:internal/modules/esm/loader:[2m632:32[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22m[39m
+[31m[1mSerialized Error:[22m[39m [90m{ code: 'ERR_MODULE_NOT_FOUND' }[39m
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+
+[2m Test Files [22m [2mno tests[22m
+[2m      Tests [22m [2mno tests[22m
+[2m     Errors [22m [1m[31m1 error[39m[22m
+[2m   Start at [22m 12:17:04
+[2m   Duration [22m 145ms[2m (transform 0ms, setup 0ms, collect 0ms, tests 0ms, environment 0ms, prepare 0ms)[22m
+
