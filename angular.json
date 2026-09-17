@@ -28,7 +28,7 @@
                                 "input": "public"
                             },
                             {
-                                "glob": "**/*",
+                                "glob": "config.*.json",
                                 "input": "src/assets",
                                 "output": "/assets"
                             }

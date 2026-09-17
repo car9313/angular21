@@ -22,7 +22,7 @@ export class ConfigService {
         const runtimeConfig = await lastValueFrom(this.rawHttp.get<AppConfig>(`/assets/config.${environment.env}.json`));
 
         if (!runtimeConfig?.serverApi) {
-            throw new Error('Configuración inválida: serverApi no está definido');
+            throw new Error('Invalid configuration: serverApi is not defined');
         }
 
         this.config = runtimeConfig;
@@ -34,7 +34,7 @@ export class ConfigService {
      */
     get url(): string {
         if (!this.config?.serverApi) {
-            throw new Error('Configuración no cargada: serverApi no está disponible');
+            throw new Error('Configuration not loaded: serverApi is not available');
         }
 
         return this.config.serverApi;

@@ -21,7 +21,7 @@ describe('ConfigService', () => {
     });
 
     it('throws when accessed before loading', () => {
-        expect(() => service.url).toThrowError(/no cargada/);
+        expect(() => service.url).toThrowError(/not loaded/);
     });
 
     it('loads the development runtime config file on load()', async () => {
@@ -40,7 +40,7 @@ describe('ConfigService', () => {
 
         http.expectOne('/assets/config.development.json').flush({});
 
-        await expect(promise).rejects.toThrowError(/serverApi no está definido/);
+        await expect(promise).rejects.toThrowError(/serverApi is not defined/);
     });
 
     it('builds absolute urls with urlWith', async () => {
