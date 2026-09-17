@@ -1,12 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import { HttpParamsBuilder } from './http-params-builder';
-import { QueryParams } from '../interfaces/query-params';
+import { defaultQuery, QueryParams } from '../interfaces/query-params';
 
 describe('HttpParamsBuilder', () => {
     it('builds an empty HttpParams by default', () => {
         const params = new HttpParamsBuilder().build();
 
         expect(params.keys()).toEqual([]);
+    });
+
+    it('later calls overwrite earlier values for the same key', () => {
+        const params = new HttpParamsBuilder().withPagination(1, 10).withPagination(2, 20).build();
+
+        expect(params.get('Pag.Page')).toBe('2');
+        expect(params.get('Pag.PageSize')).toBe('20');
     });
 
     it('sets Pag.Page and Pag.PageSize', () => {
@@ -95,5 +102,16 @@ describe('HttpParamsBuilder', () => {
         expect(params.get('Pag.Page')).toBe('1');
         expect(params.get('Pag.PageSize')).toBe('10');
         expect(params.get('Search.SearchText')).toBe('ana');
+    });
+
+    it('defaultQuery returns a fresh, immutable-by-convention object each call', () => {
+        const first = defaultQuery();
+        const second = defaultQuery();
+
+        expect(first).not.toBe(second);
+        expect(first.pag).toEqual({ Page: 1, PageSize: 10 });
+        expect(first.search).toEqual({ SearchText: '', Strict: false });
+        expect(first.filter).toEqual([]);
+        expect(first.sort).toEqual([]);
     });
 });

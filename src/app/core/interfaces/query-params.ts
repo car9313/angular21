@@ -33,3 +33,14 @@ export interface Sort {
     SortBy: string;
     Ascending: boolean;
 }
+
+/**
+ * Factory for a fresh, empty query. A factory (not a shared const) guarantees
+ * every consumer gets its own object, avoiding accidental cross-store mutation.
+ */
+export const defaultQuery = (): QueryParams => ({
+    search: { SearchText: '', Strict: false },
+    filter: [],
+    sort: [],
+    pag: { Page: 1, PageSize: 10 }
+});
