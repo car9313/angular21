@@ -6,7 +6,15 @@ import { TokenAuthService } from '../services/token-auth.service';
 
 /**
  * URLs that never carry the Authorization header and never trigger the
- * 401-refresh flow (runtime config, auth endpoints such as login).
+ * 401-refresh flow.
+ *
+ * Deliberately uses the `/api/auth/` PREFIX (not `includes('/login')`):
+ * - `includes('/login')` would also match `/api/v1/login-attempts` or
+ *   `/users/login-history` — false positives.
+ * - `/api/auth/` covers login + refresh-token + logout of the auth controller
+ *   with one exact prefix.
+ * The login request must NEVER hit the 401-refresh logic: a stale token on a
+ * login attempt would otherwise trigger a refresh round-trip.
  */
 const NO_AUTH_URLS = ['/assets/config.', '/api/auth/'];
 
@@ -49,18 +57,19 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             const httpError = error instanceof HttpErrorResponse ? error : new HttpErrorResponse({ status: 0, error });
 
             if (httpError.status === 418) {
-                // Backend forced the session to end.
+                // Backend forced the session to end: clear + redirect.
                 void logoutAndRedirect(tokenAuth, router);
                 return throwError(() => httpError);
             }
 
-            if (httpError.status === 403 && !EXCLUDED_403_URLS.some((url) => req.url.includes(url))) {
-                void router.navigateByUrl(ACCESS_DENIED_ROUTE);
-                return throwError(() => httpError);
+            if (httpError.status === 401) {
+                return handleUnauthorized(httpError, req, next, tokenAuth, router);
             }
 
-            if (httpError.status === 401) {
-                return handleUnauthorized(httpError, authReq, next, tokenAuth, router);
+            // 403 (or any other status): side effect (redirect) with a single
+            // throw exit — nothing can be added after this block by mistake.
+            if (httpError.status === 403 && !EXCLUDED_403_URLS.some((url) => req.url.includes(url))) {
+                void router.navigateByUrl(ACCESS_DENIED_ROUTE);
             }
 
             return throwError(() => httpError);
@@ -80,6 +89,9 @@ function handleUnauthorized(original: HttpErrorResponse, req: HttpRequest<unknow
                 return throwError(() => original);
             }
 
+            // Retry the ORIGINAL request (no stale Authorization header) and
+            // set the fresh token — never rebuild from authReq, so a leftover
+            // header can never survive into the retry.
             return next(req.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } }));
         })
     );
