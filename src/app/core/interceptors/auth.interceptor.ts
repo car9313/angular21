@@ -1,0 +1,115 @@
+import { inject } from '@angular/core';
+import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { Observable, Subject, catchError, switchMap, take, throwError } from 'rxjs';
+import { TokenAuthService } from '../services/token-auth.service';
+
+/**
+ * URLs that never carry the Authorization header and never trigger the
+ * 401-refresh flow (runtime config, auth endpoints such as login).
+ */
+const NO_AUTH_URLS = ['/assets/config.', '/api/auth/'];
+
+/**
+ * Optional endpoints where a 403 must NOT redirect to the access-denied page
+ * (e.g. permissive catalogue lookups). Empty by default.
+ */
+const EXCLUDED_403_URLS: string[] = [];
+
+const LOGOUT_ROUTE = '/auth/login';
+const ACCESS_DENIED_ROUTE = '/auth/access';
+
+/**
+ * Single-flight refresh queue shared by every parallel 401.
+ *
+ * The FIRST 401 creates the queue and starts ONE refresh; every other 401
+ * (including the originator) waits on the same Subject for the result.
+ * A plain Subject (no replay) guarantees nobody receives the value before
+ * the refresh actually resolves. Cleanup is identity-guarded so a late 401
+ * can never subscribe to a stale queue.
+ */
+let refreshQueue: Subject<string | null> | null = null;
+
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+    const tokenAuth = inject(TokenAuthService);
+    const router = inject(Router);
+
+    if (NO_AUTH_URLS.some((url) => req.url.includes(url))) {
+        return next(req);
+    }
+
+    // Synchronous attach: the token mirror lives in a signal.
+    const token = tokenAuth.accessToken();
+    const authReq = token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
+
+    return next(authReq).pipe(
+        catchError((error: unknown) => {
+            // Normalize once: keep real HttpErrorResponse (body/headers/url)
+            // intact, wrap anything else so no branch re-checks the type.
+            const httpError = error instanceof HttpErrorResponse ? error : new HttpErrorResponse({ status: 0, error });
+
+            if (httpError.status === 418) {
+                // Backend forced the session to end.
+                void logoutAndRedirect(tokenAuth, router);
+                return throwError(() => httpError);
+            }
+
+            if (httpError.status === 403 && !EXCLUDED_403_URLS.some((url) => req.url.includes(url))) {
+                void router.navigateByUrl(ACCESS_DENIED_ROUTE);
+                return throwError(() => httpError);
+            }
+
+            if (httpError.status === 401) {
+                return handleUnauthorized(httpError, authReq, next, tokenAuth, router);
+            }
+
+            return throwError(() => httpError);
+        })
+    );
+};
+
+function handleUnauthorized(original: HttpErrorResponse, req: HttpRequest<unknown>, next: HttpHandlerFn, tokenAuth: TokenAuthService, router: Router): Observable<HttpEvent<unknown>> {
+    const queue = refreshQueue ?? createRefreshQueue(tokenAuth);
+
+    return queue.pipe(
+        take(1),
+        switchMap((newToken) => {
+            if (newToken === null) {
+                // Refresh failed: the session cannot recover.
+                void logoutAndRedirect(tokenAuth, router);
+                return throwError(() => original);
+            }
+
+            return next(req.clone({ setHeaders: { Authorization: `Bearer ${newToken}` } }));
+        })
+    );
+}
+
+function createRefreshQueue(tokenAuth: TokenAuthService): Subject<string | null> {
+    const queue = new Subject<string | null>();
+    refreshQueue = queue;
+
+    void tokenAuth
+        .refreshAccess()
+        .then((token) => {
+            queue.next(token);
+        })
+        .catch(() => {
+            queue.next(null);
+        })
+        .finally(() => {
+            queue.complete();
+            // Deterministic cleanup: only clear the shared slot if this queue
+            // is still the one being served.
+            if (refreshQueue === queue) {
+                refreshQueue = null;
+            }
+        });
+
+    return queue;
+}
+
+async function logoutAndRedirect(tokenAuth: TokenAuthService, router: Router): Promise<void> {
+    await tokenAuth.clear();
+    await router.navigateByUrl(LOGOUT_ROUTE);
+}
