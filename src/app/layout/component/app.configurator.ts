@@ -444,11 +444,7 @@ export class AppConfigurator implements OnInit {
         if (!palette) {
             return;
         }
-        $t()
-            .preset(preset)
-            .preset(this.getPresetExt())
-            .surfacePalette(palette)
-            .use({ useDefaultOptions: true });
+        $t().preset(preset).preset(this.getPresetExt()).surfacePalette(palette).use({ useDefaultOptions: true });
     }
 
     onMenuModeChange(event: string) {
