@@ -1,0 +1,53 @@
+<p-toolbar #toolbarContainer [class.hidden]="!shouldShow()">
+    <div class="flex items-center gap-2 flex-1">
+        @if (config().showAddButton !== false) {
+            <p-button
+                *hasPermission="let ok; resource: resource(); actions: actions()"
+                pTooltip="Adicionar"
+                tooltipPosition="top"
+                icon="pi pi-plus"
+                severity="primary"
+                rounded="true"
+                class="p-button-rounded shadow-md hover:scale-105 transition-transform duration-200 mr-2"
+                [attr.aria-label]="'Agregar nuevo'"
+                (onClick)="handleNew()"
+            ></p-button>
+        }
+
+        @for (btn of extraButtons(); track btn.id) {
+            @if (btn.visible !== false) {
+                @if (btn.permission) {
+                    <ng-container *hasPermission="let ok; resource: btn.permission.resource; actions: btn.permission.actions">
+                        <p-button
+                            [label]="btn.label"
+                            [icon]="btn.icon"
+                            [pTooltip]="btn.tooltip"
+                            tooltipPosition="top"
+                            [rounded]="btn.rounded ?? true"
+                            [outlined]="btn.outlined ?? true"
+                            [disabled]="btn.disabled"
+                            [attr.aria-label]="btn.ariaLabel || btn.label || btn.id"
+                            (onClick)="handleAction(btn)"
+                        ></p-button>
+                    </ng-container>
+                } @else {
+                    <p-button
+                        [label]="btn.label"
+                        [icon]="btn.icon"
+                        [pTooltip]="btn.tooltip"
+                        tooltipPosition="top"
+                        [rounded]="btn.rounded ?? true"
+                        [outlined]="btn.outlined ?? true"
+                        [disabled]="btn.disabled"
+                        [attr.aria-label]="btn.ariaLabel || btn.label || btn.id"
+                        (onClick)="handleAction(btn)"
+                    ></p-button>
+                }
+            }
+        }
+
+        <ng-content select="[toolbar-start]"></ng-content>
+        <span class="flex-1"></span>
+        <ng-content select="[toolbar-end]"></ng-content>
+    </div>
+</p-toolbar>

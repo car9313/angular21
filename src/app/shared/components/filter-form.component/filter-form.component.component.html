@@ -1,0 +1,13 @@
+<form autocomplete="off" class="flex flex-col sm:flex-row flex-wrap sm:justify-end justify-center gap-4" (ngSubmit)="onApply()">
+    <!-- Campos del formulario proyectados -->
+    <ng-container [formGroup]="form">
+        <ng-content></ng-content>
+    </ng-container>
+    <!-- Botones de acción -->
+    <div class="flex items-center justify-end gap-2">
+        <p-button type="submit" icon="pi pi-filter" [rounded]="true" [outlined]="!hasActiveFilters()" [disabled]="!hasFilters()" pTooltip="Aplicar filtros" tooltipPosition="top"></p-button>
+        @if (hasFilters() || hasActiveFilters()) {
+            <p-button type="button" severity="danger" icon="pi pi-filter-slash" [rounded]="true" [outlined]="!hasActiveFilters()" pTooltip="Limpiar filtros" tooltipPosition="top" (click)="onReset()"></p-button>
+        }
+    </div>
+</form>

@@ -1,0 +1,34 @@
+<div class="border border-gray-300 rounded-md overflow-hidden">
+    <!-- Header -->
+    <div class="grid grid-cols-2">
+        <div class="bg-primary text-white text-center font-medium py-3 text-lg border-r border-primary">Datos generales</div>
+
+        <div class="bg-primary text-white text-center font-medium py-3 text-lg">Observaciones</div>
+    </div>
+
+    <!-- Body -->
+    <div class="grid grid-cols-2 min-h-44">
+        <!-- Left -->
+        <div class="border-r border-green-300 p-6">
+            <ul class="pl-6 space-y-4 list-none">
+                @for (item of observations(); track item.createdMoment) {
+                    <li>
+                        <span class="font-semibold uppercase"> {{ prueba(item.createdMoment) }}</span>
+                    </li>
+                    <li>
+                        <span class="font-semibold uppercase"> {{ item.createdPersonName }}</span>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <!-- Right -->
+        <div class="p-6">
+            @for (item of observations(); track item.createdMoment) {
+                <li pl-6 space-y-4 list-none>
+                    <span class="font-semibold uppercase"> {{ item.content }}</span>
+                </li>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,165 @@
+<!--
+<p-fieldset legend="Filtros" toggleable="true">
+    <form
+        autocomplete="off"
+        [formGroup]="formFilter"
+        class="flex flex-col sm:flex-row flex-wrap sm:justify-end justify-center gap-4"
+    >
+        <p-floatlabel variant="on">
+            <input
+                autocomplete="off"
+                class="w-full md:w-[20rem]"
+                formControlName="IdentityNumber"
+                id="IdentityNumber"
+                pInputText
+                name="IdentityNumber"
+            />
+            <label class="text-gray-500" for="IdentityNumber">Carné de Identidad</label>
+        </p-floatlabel>
+
+        @if (!hideFirstName()) {
+            <p-floatlabel variant="on">
+                <input
+                    autocomplete="off"
+                    class="w-full md:w-[20rem]"
+                    formControlName="FirstName"
+                    id="FirstName"
+                    pInputText
+                    name="FirstName"
+                />
+                <label class="text-gray-500" for="FirstName">Primer Nombre</label>
+            </p-floatlabel>
+        }
+
+        @if (!hideSecondName()) {
+            <p-floatlabel variant="on">
+                <input
+                    autocomplete="off"
+                    class="w-full md:w-[20rem]"
+                    formControlName="SecondName"
+                    id="SecondName"
+                    pInputText
+                    name="SecondName"
+                />
+                <label class="text-gray-500" for="SecondName">Segundo Nombre</label>
+            </p-floatlabel>
+        }
+
+        @if (!hideLastName()) {
+            <p-floatlabel variant="on">
+                <input
+                    autocomplete="off"
+                    class="w-full md:w-[20rem]"
+                    formControlName="LastName"
+                    id="LastName"
+                    pInputText
+                    name="LastName"
+                />
+                <label class="text-gray-500" for="LastName">Primer Apellido</label>
+            </p-floatlabel>
+        }
+
+        @if (!hideSecondLastName()) {
+            <p-floatlabel variant="on">
+                <input
+                    autocomplete="off"
+                    class="w-full md:w-[20rem]"
+                    formControlName="SecondLastName"
+                    id="SecondLastName"
+                    pInputText
+                    name="SecondLastName"
+                />
+                <label class="text-gray-500" for="SecondLastName">Segundo Apellido</label>
+            </p-floatlabel>
+        }
+
+        &lt;!&ndash; Province &ndash;&gt;
+        <app-async-select-infinite
+            formControlName="ProvinceId"
+            [loadPageFn]="loadProvinces"
+            optionLabel="descLong"
+            optionValue="code"
+            label="Provincias"
+            inputId="provinceId"
+            containerClass="w-full sm:w-auto min-w-[150px] sm:max-w-[200px]"
+            panelMaxHeight="300px"
+            loadMoreText="Ver más provincias"
+            loadingMoreText="Cargando provincias..."
+            noMoreText="Todas las provincias cargadas"
+            emptyMessage="No hay provincias disponibles"
+            [enableSearch]="true"
+            searchPlaceholder="Buscar provincias..."
+            cacheKey="provinces-filter"
+            [debounceTimeMs]="400"
+        />
+
+        &lt;!&ndash; Municipality &ndash;&gt;
+        <app-async-select-infinite
+            formControlName="MunicipalityId"
+            [loadPageFn]="loadMunicipalities"
+            optionLabel="descLong"
+            optionValue="code"
+            label="Municipios"
+            inputId="municipality"
+            containerClass="w-full sm:w-auto min-w-[150px] sm:max-w-[200px]"
+            panelMaxHeight="300px"
+            loadMoreText="Ver más municipios"
+            loadingMoreText="Cargando municipios..."
+            noMoreText="Todos los municipios cargados"
+            emptyMessage="No hay municipios disponibles"
+            [enableSearch]="true"
+            searchPlaceholder="Buscar municipios..."
+            cacheKey="municipalities-filter"
+            [debounceTimeMs]="400"
+            [reloadTrigger]="municipalityReloadTrigger()"
+        />
+
+        &lt;!&ndash; Sex &ndash;&gt;
+        <p-floatlabel variant="on" class="w-full sm:w-auto min-w-[150px] sm:max-w-[200px]">
+            <p-select
+                inputId="Gender"
+                formControlName="Gender"
+                [checkmark]="true"
+                [showClear]="true"
+                [options]="sexOptions"
+                styleClass="w-full"
+                [panelStyle]="{ 'max-width': '300px', 'max-height': '150px', 'overflow-y': 'auto' }"
+                optionLabel="label"
+                optionValue="value"
+            >
+                <ng-template let-item pTemplate="dropdownicon">
+                    <span class="block truncate text-sm text-gray-700">
+                        {{ item?.label || '' }}
+                    </span>
+                </ng-template>
+            </p-select>
+            <label class="text-gray-500" for="Gender">Sexo</label>
+        </p-floatlabel>
+
+        &lt;!&ndash; Status (condicional) &ndash;&gt;
+        @if (!hideStatus()) {
+            <p-floatlabel variant="on" class="w-full sm:w-auto min-w-[150px] sm:max-w-[200px]">
+                &lt;!&ndash; Aquí iría un select de estados, pero puedes adaptarlo según tu necesidad &ndash;&gt;
+                <p-select
+                    inputId="Status"
+                    formControlName="Status"
+                    [checkmark]="true"
+                    [showClear]="true"
+                    [options]="statusOptions"
+                    styleClass="w-full"
+                    optionLabel="label"
+                    optionValue="value"
+                />
+                <label class="text-gray-500" for="Status">Estado</label>
+            </p-floatlabel>
+        }
+
+        <app-filter-actions
+            [hasFilters]="hasFilters()"
+            [hasActiveFilters]="hasActiveFilters()"
+            (reset)="onReset()"
+            (apply)="onSubmit()"
+        />
+    </form>
+</p-fieldset>
+-->

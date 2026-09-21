@@ -1,0 +1,71 @@
+<p-table
+    [value]="items()"
+    [dataKey]="dataKey()"
+    [expandedRowKeys]="expandedRowKeys()"
+    [rowExpandMode]="'multiple'"
+    [lazy]="true"
+    [paginator]="paginated()"
+    [rows]="pageSize()"
+    [totalRecords]="totalRecords()"
+    [first]="first()"
+    [rowsPerPageOptions]="rowsPerPageOptions()"
+    (onLazyLoad)="lazyLoad.emit($event)"
+    [loading]="loading()"
+    [stripedRows]="stripedRows()"
+    [showCurrentPageReport]="showCurrentPageReport()"
+    [currentPageReportTemplate]="currentPageReportTemplate()"
+    scrollHeight="flex"
+    [scrollable]="true"
+    [tableStyle]="{ 'min-width': '100%' }"
+    [rowHover]="true"
+    class="person-table"
+>
+    <ng-template pTemplate="header">
+        @if (headerTemplate(); as headerTpl) {
+            <ng-container *ngTemplateOutlet="headerTpl" />
+        } @else {
+            <tr>
+                <th style="width: 3rem"></th>
+                <th class="dark:text-gray-300 text-gray-600 tracking-wider py-2 px-4 text-left">Acciones</th>
+            </tr>
+        }
+    </ng-template>
+
+    <ng-template pTemplate="body" let-row let-expanded="expanded">
+        @if (bodyTemplate(); as bodyTpl) {
+            <ng-container *ngTemplateOutlet="bodyTpl; context: { $implicit: row, expanded: expanded, table: table }" />
+        }
+    </ng-template>
+
+    <ng-template pTemplate="expandedrow" let-row>
+        @if (expandedRowTemplate(); as rowTpl) {
+            <ng-container *ngTemplateOutlet="rowTpl; context: { $implicit: row }" />
+        }
+    </ng-template>
+
+    @if (loadingSkeleton()) {
+        <ng-template pTemplate="loadingbody">
+            @for (row of skeletonRows; track $index) {
+                <tr>
+                    @for (cell of skeletonCells; track $index) {
+                        <td>
+                            <p-skeleton [style]="{ height: '20px' }"></p-skeleton>
+                        </td>
+                    }
+                </tr>
+            }
+        </ng-template>
+    }
+
+    <ng-template pTemplate="emptymessage">
+        @if (emptyMessageTemplate(); as emptyTpl) {
+            <ng-container *ngTemplateOutlet="emptyTpl" />
+        } @else {
+            <tr>
+                <td [attr.colspan]="100" class="text-center py-8">
+                    <app-empty-state [title]="emptyTitle()" [description]="emptyDescription()" />
+                </td>
+            </tr>
+        }
+    </ng-template>
+</p-table>

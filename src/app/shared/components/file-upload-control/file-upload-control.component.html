@@ -1,0 +1,40 @@
+<div class="flex flex-col gap-2">
+    @if (label()) {
+        <label class="font-medium text-sm" [attr.for]="name()">
+            {{ label() }}
+        </label>
+    }
+
+    <p-fileUpload
+        #fileUpload
+        [name]="name()"
+        mode="basic"
+        chooseLabel="Elegir archivo"
+        [auto]="true"
+        [customUpload]="true"
+        [multiple]="false"
+        [disabled]="disabled()"
+        [accept]="acceptAttr()"
+        [chooseLabel]="chooseLabel()"
+        [chooseIcon]="chooseIcon()"
+        [maxFileSize]="maxFileSizeBytes()"
+        (onSelect)="handleSelect($event)"
+    ></p-fileUpload>
+
+    @if (selectedFile()) {
+        <div class="flex flex-wrap items-center gap-3 rounded-xl border border-dashed px-3 py-2">
+            <small class="text-sm">
+                Archivo:
+                <span class="font-medium">{{ fileName() }}</span>
+            </small>
+
+            <p-button type="button" label="Quitar" icon="pi pi-times" text severity="secondary" [disabled]="disabled()" (onClick)="removeFile()" />
+        </div>
+    }
+
+    @if (helperText()) {
+        <small class="text-muted-foreground">
+            {{ helperText() }}
+        </small>
+    }
+</div>

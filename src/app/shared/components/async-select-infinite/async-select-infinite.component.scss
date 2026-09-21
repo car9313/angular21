@@ -1,0 +1,21 @@
+.async-select-container {
+    width: 100%;
+}
+
+.search-input-wrapper {
+    position: relative;
+    margin-bottom: 0.5rem;
+
+    .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+    }
+
+    input {
+        padding-left: 2.5rem;
+        width: 100%;
+    }
+}

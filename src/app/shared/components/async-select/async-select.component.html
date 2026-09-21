@@ -1,0 +1,30 @@
+@if (loading()) {
+    <p-skeleton width="100%" height="38px" />
+} @else if (denied()) {
+    <p-inputgroup>
+        <p-inputgroup-addon>
+            <i class="pi pi-lock"></i>
+        </p-inputgroup-addon>
+        <input pInputText readonly disabled value="Sin permisos" class="w-full" />
+    </p-inputgroup>
+} @else {
+    <p-select
+        [checkmark]="true"
+        [showClear]="showClear()"
+        [appendTo]="'body'"
+        [options]="displayItems()"
+        [inputId]="inputId()"
+        [style]="{ width: '100%' }"
+        class="w-full"
+        [optionLabel]="optionLabel()"
+        [optionValue]="optionValue()"
+        [placeholder]="''"
+        [disabled]="effectiveDisabled()"
+        [(ngModel)]="internalValue"
+        (ngModelChange)="onSelectChange($event)"
+        (onBlur)="onBlur()"
+    />
+    @if (label()) {
+        <label [for]="inputId()">{{ label() }}</label>
+    }
+}

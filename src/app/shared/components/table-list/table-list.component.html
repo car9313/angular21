@@ -1,0 +1,49 @@
+<app-base-table
+    [items]="items()"
+    [loading]="loading()"
+    [totalRecords]="totalRecords()"
+    [pageSize]="pageSize()"
+    [first]="first()"
+    [paginated]="true"
+    [dataKey]="dataKey()"
+    [expandedRowKeys]="expandedRowKeys()"
+    [stripedRows]="stripedRows()"
+    [showCurrentPageReport]="showCurrentPageReport()"
+    [currentPageReportTemplate]="currentPageReportTemplate()"
+    [loadingSkeleton]="loadingSkeleton()"
+    (lazyLoad)="onLazyLoad($event)"
+>
+    <!-- Cabecera -->
+    <ng-template #header>
+        @if (headerTemplate(); as t) {
+            <ng-container *ngTemplateOutlet="t" />
+        }
+    </ng-template>
+
+    <!-- Cuerpo: pasamos 'table' al contexto -->
+    <ng-template #body let-row let-expanded="expanded" let-table="table">
+        @if (bodyTemplate(); as t) {
+            <ng-container *ngTemplateOutlet="t; context: { $implicit: row, expanded: expanded, table: table }" />
+        }
+    </ng-template>
+
+    <!-- Fila expandida -->
+    <ng-template #expandedrow let-row>
+        @if (expandedRowTemplate(); as t) {
+            <ng-container *ngTemplateOutlet="t; context: { $implicit: row }" />
+        }
+    </ng-template>
+
+    <!-- Mensaje vacío (fallback propio) -->
+    <ng-template #emptymessage>
+        @if (emptyMessageTemplate(); as t) {
+            <ng-container *ngTemplateOutlet="t" />
+        } @else {
+            <tr>
+                <td [attr.colspan]="100" class="text-center py-8">
+                    <app-empty-state title="No hay personas" description="La lista está vacía." />
+                </td>
+            </tr>
+        }
+    </ng-template>
+</app-base-table>

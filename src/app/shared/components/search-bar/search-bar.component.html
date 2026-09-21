@@ -1,0 +1,19 @@
+<form autocomplete="off" (ngSubmit)="onSubmit()" class="flex flex-wrap justify-end items-center gap-2 my-4">
+    <!-- Filtros específicos -->
+    <ng-container *ngTemplateOutlet="specificFilters; context: { $implicit: form.value, formGroup: form }"></ng-container>
+    <!-- PrimeNG input -->
+    <div class="flex justify-center items-center gap-2">
+        <p-floatlabel variant="on">
+            <input autocomplete="off" class="w-full md:w-[20rem]" [(ngModel)]="searchText" id="name" pInputText name="searchText" />
+            <label class="text-gray-500" for="name">Buscar</label>
+        </p-floatlabel>
+        <!--
+
+            <p-checkbox name="strict" [(ngModel)]="strict" (ngModelChange)="strictChange.emit($event)" binary="true" label="Coincidencia exacta"></p-checkbox>
+-->
+
+        <button pButton type="button" icon="pi pi-filter-slash" severity="success" [rounded]="true" [disabled]="" [outlined]="true" pTooltip="Limpiar Filtros" tooltipPosition="top" (click)="onReset()" *ngIf="hasActiveFilters"></button>
+        <button pButton type="submit" icon="pi pi-search" class="p-button-outlined p-button-rounded"></button>
+    </div>
+</form>
+<ng-template #defaultStrictTemplate></ng-template>

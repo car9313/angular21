@@ -1,0 +1,92 @@
+@if (initialLoading()) {
+    <div class="flex flex-col items-center justify-center p-4">
+        <p-skeleton width="100%" height="38px" />
+        <span class="text-sm text-gray-400 mt-2">Cargando {{ label() || 'datos' }}...</span>
+    </div>
+} @else if (denied()) {
+    <p-inputgroup>
+        <p-inputgroup-addon><i class="pi pi-lock"></i></p-inputgroup-addon>
+        <input pInputText readonly disabled value="Sin permisos" class="w-full" />
+    </p-inputgroup>
+} @else {
+    <p-floatlabel variant="on" [class]="containerClass()">
+        <p-select
+            #selectComponent
+            [checkmark]="true"
+            [showClear]="showClear()"
+            [appendTo]="'body'"
+            [options]="displayItems()"
+            [inputId]="inputId()"
+            [style]="{ width: '100%' }"
+            panelStyleClass="infinite-select-panel"
+            [panelStyle]="{ 'max-height': panelMaxHeight(), 'overflow-y': 'auto' }"
+            class="w-full"
+            [optionLabel]="optionLabel()"
+            [optionValue]="optionValue()"
+            [placeholder]="''"
+            [disabled]="effectiveDisabled()"
+            [(ngModel)]="internalValue"
+            (ngModelChange)="onSelectChange($event)"
+            (onBlur)="onBlur()"
+            [filter]="false"
+        >
+            <!-- Header con búsqueda manual -->
+            <ng-template #header>
+                @if (enableSearch()) {
+                    <div class="flex items-stretch gap-1 p-2">
+                        <input type="text" pInputText [placeholder]="searchPlaceholder()" [(ngModel)]="searchTermInput" (keydown)="onSearchKeydown($event)" [disabled]="effectiveDisabled()" class="flex-1" />
+                        <p-button icon="pi pi-search" [disabled]="!searchTermInput.trim() || effectiveDisabled()" (click)="performSearch($event)" pTooltip="Buscar" tooltipPosition="top" />
+                        @if (hasSearch()) {
+                            <p-button severity="danger" icon="pi pi-times" [outlined]="true" (click)="clearSearch($event)" pTooltip="Limpiar búsqueda" tooltipPosition="top" />
+                        }
+                    </div>
+                }
+            </ng-template>
+
+            <!-- Template para opciones -->
+            <ng-template let-option #item>
+                <div class="flex items-center gap-2">
+                    <span>{{ option[optionLabel()] }}</span>
+                </div>
+            </ng-template>
+
+            <!-- Footer -->
+            <ng-template #footer>
+                <div class="flex flex-col items-center justify-center p-2">
+                    @if (error()) {
+                        <div class="flex flex-col items-center gap-2 text-red-500 w-full">
+                            <i class="pi pi-exclamation-triangle text-xl"></i>
+                            <span class="text-sm text-center">{{ errorMessage() }}</span>
+                            <p-button label="Reintentar" icon="pi pi-refresh" size="small" severity="danger" [text]="true" (onClick)="retry()" />
+                        </div>
+                    } @else if (loading()) {
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <i class="pi pi-spin pi-spinner"></i>
+                            <span>Buscando...</span>
+                        </div>
+                    } @else if (loadingMore()) {
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <i class="pi pi-spin pi-spinner"></i>
+                            <span>{{ loadingMoreText() }}</span>
+                        </div>
+                    } @else if (hasMore()) {
+                        <p-button [label]="loadMoreText()" icon="pi pi-chevron-down" size="small" [text]="true" [disabled]="loadingMore()" (onClick)="loadNextPage()" />
+                    } @else if (items().length > 0) {
+                        <span class="text-sm text-gray-400">{{ noMoreText() }}</span>
+                    } @else if (!loading() && !denied()) {
+                        <span class="text-sm text-gray-400">{{ emptyMessage() }}</span>
+                    }
+                </div>
+            </ng-template>
+        </p-select>
+        @if (findingItem()) {
+            <div class="flex items-center gap-1 text-xs text-gray-400 mt-1">
+                <i class="pi pi-spin pi-spinner"></i>
+                <span>Resolviendo...</span>
+            </div>
+        }
+        @if (label()) {
+            <label [for]="inputId()">{{ label() }}</label>
+        }
+    </p-floatlabel>
+}

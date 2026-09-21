@@ -1,0 +1,8 @@
+.chip-breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+}
+.custom-chip {
+    /* reduce el radio de esquina a 0.25rem (4px) */
+    --p-chip-border-radius: 0.25rem;
+}
