@@ -1,19 +1,20 @@
 import { MenuItem } from 'primeng/api';
-import { ACTIONS } from './actions';
-import { RESOURCES } from './resources';
+import { ACTIONS, Action } from './actions';
+import { RESOURCES, Resource } from './resources';
 
 /**
  * Menu item with RBAC metadata.
- * - resource: permission resource required to see the leaf.
+ * - resource: permission resource (typed union — typos are compile errors)
+ *   required to see the leaf.
  * - requiredActions: actions required on that resource (defaults downstream
  *   to Read when omitted).
- * - visibleIfResource === false: ALWAYS visible even if the resource is not
- *   granted (e.g. generic entries).
+ * - alwaysVisible: ALWAYS visible even if the resource is not granted
+ *   (e.g. generic entries).
  */
 export interface SecuredMenuItem extends MenuItem {
-    resource?: string;
-    requiredActions?: string[];
-    visibleIfResource?: boolean;
+    resource?: Resource;
+    requiredActions?: Action[];
+    alwaysVisible?: boolean;
     items?: SecuredMenuItem[];
 }
 

@@ -21,7 +21,7 @@ describe('MenuPermissionService', () => {
                     label: 'Seguridad',
                     items: [
                         { label: 'Usuarios', routerLink: ['/usuarios'], resource: 'users', requiredActions: [ACTIONS.Read] },
-                        { label: 'Ayuda', routerLink: ['/ayuda'], visibleIfResource: false }
+                        { label: 'Ayuda', routerLink: ['/ayuda'], alwaysVisible: true }
                     ]
                 }
             ]
@@ -65,7 +65,7 @@ describe('MenuPermissionService', () => {
         expect(filtered).not.toContain('Usuarios');
     });
 
-    it('always keeps visibleIfResource: false entries regardless of permissions', () => {
+    it('always keeps alwaysVisible entries regardless of permissions', () => {
         store.setUser(null);
         const filtered = JSON.stringify(service.filterByPermission(tree));
 

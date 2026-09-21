@@ -41,7 +41,7 @@ export class MenuPermissionService {
     }
 
     private isVisible(item: SecuredMenuItem): boolean {
-        if (item.visibleIfResource === false) {
+        if (item.alwaysVisible) {
             return true;
         }
 
