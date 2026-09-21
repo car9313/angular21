@@ -35,11 +35,15 @@ describe('MenuPermissionService', () => {
         store.setUser(null);
     });
 
-    it('shows only non-resource items when logged out', () => {
+    it('shows only non-resource items when logged out and drops empty groups', () => {
         const filtered = service.filterByPermission(tree);
 
+        // 'Inicio' collapses (its only leaf requires a permission); the
+        // visible branch is Administración → Seguridad → Ayuda.
         expect(filtered).toHaveLength(1);
-        expect(filtered[0].label).toBe('Inicio');
+        expect(filtered[0].label).toBe('Administración');
+        expect(JSON.stringify(filtered)).not.toContain('Panel');
+        expect(JSON.stringify(filtered)).toContain('Ayuda');
     });
 
     it('shows leaves once the user has the required permission', () => {
