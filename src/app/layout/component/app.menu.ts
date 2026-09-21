@@ -1,8 +1,9 @@
-import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MenuItem } from 'primeng/api';
 import { AppMenuitem } from './app.menuitem';
+import { MENU_ITEMS } from '@/app/core/constants/menu';
+import { MenuPermissionService } from '@/app/core/services/menu-permission.service';
 
 @Component({
     selector: 'app-menu',
@@ -10,7 +11,7 @@ import { AppMenuitem } from './app.menuitem';
     imports: [CommonModule, AppMenuitem, RouterModule],
     changeDetection: ChangeDetectionStrategy.Eager,
     template: `<ul class="layout-menu">
-        @for (item of model; track item.label) {
+        @for (item of model(); track item.label) {
             @if (!item.separator) {
                 <li app-menuitem [item]="item" [root]="true"></li>
             } @else {
@@ -19,23 +20,8 @@ import { AppMenuitem } from './app.menuitem';
         }
     </ul> `
 })
-export class AppMenu implements OnInit {
-    model: MenuItem[] = [];
+export class AppMenu {
+    private readonly menuPermission = inject(MenuPermissionService);
 
-    ngOnInit() {
-        this.model = [
-            {
-                label: 'Home',
-                items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
-            },
-            {
-                label: 'Auth',
-                items: [
-                    { label: 'Login', icon: 'pi pi-fw pi-sign-in', routerLink: ['/auth/login'] },
-                    { label: 'Error', icon: 'pi pi-fw pi-times-circle', routerLink: ['/auth/error'] },
-                    { label: 'Access Denied', icon: 'pi pi-fw pi-lock', routerLink: ['/auth/access'] }
-                ]
-            }
-        ];
-    }
+    readonly model = computed(() => this.menuPermission.filterByPermission(MENU_ITEMS));
 }
