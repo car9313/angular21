@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { DevolucionObservation } from '../../../modules/devolution/devoluciones/domain/dtos/devolucion-observation.dto';
 import { formatDateForDisplay, formatDateTimeForDisplay, formatTimeForDisplay } from '../../../core/helpers/date-mapper.helper';
 @Component({

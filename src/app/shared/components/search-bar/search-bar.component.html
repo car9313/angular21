@@ -7,13 +7,11 @@
             <input autocomplete="off" class="w-full md:w-[20rem]" [(ngModel)]="searchText" id="name" pInputText name="searchText" />
             <label class="text-gray-500" for="name">Buscar</label>
         </p-floatlabel>
-        <!--
 
-            <p-checkbox name="strict" [(ngModel)]="strict" (ngModelChange)="strictChange.emit($event)" binary="true" label="Coincidencia exacta"></p-checkbox>
--->
-
-        <button pButton type="button" icon="pi pi-filter-slash" severity="success" [rounded]="true" [disabled]="" [outlined]="true" pTooltip="Limpiar Filtros" tooltipPosition="top" (click)="onReset()" *ngIf="hasActiveFilters"></button>
-        <button pButton type="submit" icon="pi pi-search" class="p-button-outlined p-button-rounded"></button>
+        @if (hasActiveFilters) {
+            <button pButton type="button" severity="success" [rounded]="true" [outlined]="true" pTooltip="Limpiar Filtros" tooltipPosition="top" (click)="onReset()" aria-label="Limpiar filtros"><i class="pi pi-filter-slash"></i></button>
+        }
+        <button pButton type="submit" class="p-button-outlined p-button-rounded" aria-label="Buscar"><i class="pi pi-search"></i></button>
     </div>
 </form>
 <ng-template #defaultStrictTemplate></ng-template>

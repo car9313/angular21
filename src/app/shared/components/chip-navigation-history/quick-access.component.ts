@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChipModule } from 'primeng/chip';
 import { Router, RouterLink } from '@angular/router';
@@ -11,15 +11,16 @@ import { QuickAccessService } from './quick-access.service';
     styleUrl: './quick-access.component.css',
     template: `
         <div class="chip-breadcrumbs">
-            <p-chip
-                *ngFor="let crumb of items(); let i = index"
-                [label]="crumb.label"
-                [routerLink]="crumb.isCurrent ? null : crumb.routerLink"
-                clickable="true"
-                removable="true"
-                (onRemove)="removeCrumb(i)"
-                [styleClass]="'custom-chip mr-2 mb-2' + (crumb.isCurrent ? ' active-chip' : '')"
-            ></p-chip>
+            @for (crumb of items(); track $index) {
+                <p-chip
+                    [label]="crumb.label"
+                    [routerLink]="crumb.isCurrent ? null : crumb.routerLink"
+                    clickable="true"
+                    removable="true"
+                    (onRemove)="removeCrumb($index)"
+                    [styleClass]="'custom-chip mr-2 mb-2' + (crumb.isCurrent ? ' active-chip' : '')"
+                ></p-chip>
+            }
         </div>
     `,
     styles: [
@@ -35,17 +36,16 @@ import { QuickAccessService } from './quick-access.service';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QuickAccessComponent {
+    private readonly breadcrumbService = inject(QuickAccessService);
+
+    private readonly router = inject(Router);
+
     items = computed(() =>
         this.breadcrumbService.chipNavigations().map((crumb) => ({
             ...crumb,
             isCurrent: crumb.url === this.breadcrumbService.currentUrl()
         }))
     );
-
-    constructor(
-        private breadcrumbService: QuickAccessService,
-        private router: Router
-    ) {}
 
     /**
      * Elimina el crumb en la posición i y navega

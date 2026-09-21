@@ -44,8 +44,8 @@ export class ToolbarComponent {
     extraButtons = input<ToolbarButton[]>([]);
     config = input<ToolbarConfig>({});
 
-    onNew = output<void>();
-    onAction = output<{ id: string; payload?: unknown }>();
+    created = output<void>();
+    action = output<{ id: string; payload?: unknown }>();
 
     private readonly hasNewButtonPermission = computed(() => {
         const roles = this.tokenAuthService.userRoles;
@@ -64,11 +64,11 @@ export class ToolbarComponent {
     });
 
     handleNew() {
-        this.onNew.emit();
+        this.created.emit();
     }
 
     handleAction(btn: ToolbarButton) {
         if (btn.disabled) return;
-        this.onAction.emit({ id: btn.id, payload: btn.payload });
+        this.action.emit({ id: btn.id, payload: btn.payload });
     }
 }

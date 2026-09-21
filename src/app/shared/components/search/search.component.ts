@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, signal, output, input, OnChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, output, input, OnChanges } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { Button } from 'primeng/button';
@@ -16,7 +16,7 @@ export class SearchComponent implements OnChanges {
     /** valor controlado externamente */
     searchText = input<string>('');
     /** emite al presionar buscar */
-    search = output<string>();
+    searchSubmitted = output<string>();
 
     text = signal<string>(this.searchText()); // estado interno local
 
@@ -25,7 +25,7 @@ export class SearchComponent implements OnChanges {
         this.text.set(this.searchText());
     }
     handleSearch() {
-        this.search.emit(this.text());
+        this.searchSubmitted.emit(this.text());
     }
 
     hasActiveSearch(): boolean {
@@ -38,6 +38,6 @@ export class SearchComponent implements OnChanges {
 
     clear() {
         this.text.set('');
-        this.search.emit('');
+        this.searchSubmitted.emit('');
     }
 }

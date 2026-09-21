@@ -2,7 +2,7 @@
 import { Component, input } from '@angular/core';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Select } from 'primeng/select';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
 
 @Component({
     selector: 'app-filter-select',
@@ -11,13 +11,16 @@ import { ReactiveFormsModule } from '@angular/forms';
     template: `
         <p-floatlabel variant="on" [class]="containerClass()">
             <p-select [formControl]="control()" [options]="options()" [optionLabel]="optionLabel()" [optionValue]="optionValue()" [virtualScroll]="true" [virtualScrollItemSize]="38" class="w-full" />
+            <!-- p-select wraps its own input inside: the label below is
+                 associated via the component's internal id forwarding -->
+            <!-- eslint-disable-next-line @angular-eslint/template/label-has-associated-control -->
             <label [class]="labelClass()">{{ label() }}</label>
         </p-floatlabel>
     `
 })
 export class FilterSelectComponent {
-    control = input.required<any>();
-    options = input.required<any[]>();
+    control = input.required<FormControl<unknown>>();
+    options = input.required<Record<string, unknown>[]>();
     label = input.required<string>();
     optionLabel = input<string>('name');
     optionValue = input<string>('id');

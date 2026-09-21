@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { CommonModule } from '@angular/common';
 import { BreadcrumbService } from './breadcrumbs.service';
@@ -11,6 +11,8 @@ import { BreadcrumbService } from './breadcrumbs.service';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BreadcrumbComponent {
+    private readonly breadcrumbService = inject(BreadcrumbService);
+
     items = computed(() =>
         this.breadcrumbService.breadcrumbs().map((c) => ({
             label: c.label,
@@ -19,5 +21,4 @@ export class BreadcrumbComponent {
             styleClass: c.url ? 'bc-link' : 'bc-text'
         }))
     );
-    constructor(private breadcrumbService: BreadcrumbService) {}
 }

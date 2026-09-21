@@ -1,18 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { LoadingService } from '../../../core/services/loading.service';
 import { ProgressSpinner } from 'primeng/progressspinner';
-import { AsyncPipe, NgIf } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
+import { Observable } from 'rxjs';
 
 @Component({
     selector: 'app-spinner',
-    imports: [ProgressSpinner, NgIf, AsyncPipe],
+    imports: [ProgressSpinner, AsyncPipe],
     templateUrl: './spinner.component.html',
     styleUrl: './spinner.component.scss'
 })
 export class SpinnerComponent {
-    loading$;
+    private readonly loadingService = inject(LoadingService);
 
-    constructor(private loadingService: LoadingService) {
-        this.loading$ = this.loadingService.loading$;
-    }
+    readonly loading$: Observable<boolean> = this.loadingService.loading$;
 }

@@ -4,7 +4,7 @@ import { Tree } from 'primeng/tree';
 import type { TreeNode } from 'primeng/api';
 
 @Component({
-    selector: 'permissions-tree',
+    selector: 'app-permissions-tree',
     standalone: true,
     imports: [Tree],
     template: `

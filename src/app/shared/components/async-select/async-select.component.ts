@@ -9,8 +9,9 @@
  * - `formDisabled` signal → para deshabilitado reactivo desde `FormControl.disable()`
  * - `effectiveDisabled()` computed → combina ambos; se usa en el template sobre `p-select[disabled]`
  */
-import { ChangeDetectionStrategy, Component, computed, effect, input, OnDestroy, output, signal, Signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, OnDestroy, output, signal, Signal, untracked, noop } from '@angular/core';
 import { FormsModule, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 
@@ -19,6 +20,11 @@ import { Skeleton } from 'primeng/skeleton';
 import { InputGroup } from 'primeng/inputgroup';
 import { InputGroupAddon } from 'primeng/inputgroupaddon';
 import { InputText } from 'primeng/inputtext';
+
+/**
+ * Shape of the selectable options (keys named by optionLabel / optionValue).
+ */
+type SelectItem = Record<string, unknown>;
 
 @Component({
     selector: 'app-async-select',
@@ -35,7 +41,7 @@ import { InputText } from 'primeng/inputtext';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AsyncSelectComponent implements ControlValueAccessor, OnDestroy {
-    loadFn = input.required<() => Observable<any[]>>();
+loadFn = input.required<() => Observable<SelectItem[]>>();
     optionLabel = input('name');
     optionValue = input('id');
     placeholder = input('');
@@ -44,30 +50,30 @@ export class AsyncSelectComponent implements ControlValueAccessor, OnDestroy {
     showClear = input(true);
     disabled = input(false);
     retryTrigger = input(0);
-    filterFn = input<((items: any[]) => any[]) | null>(null);
+    filterFn = input<((items: SelectItem[]) => SelectItem[]) | null>(null);
 
     permissionDenied = output<boolean>();
 
-    readonly items = signal<any[]>([]);
-    readonly displayItems: Signal<any[]> = computed(() => {
+    readonly items = signal<SelectItem[]>([]);
+    readonly displayItems: Signal<SelectItem[]> = computed(() => {
         const fn = this.filterFn();
         const all = this.items();
         return fn ? fn(all) : all;
     });
     readonly loading = signal(false);
     readonly denied = signal(false);
-    /** Señal interna para el estado disabled propagado desde `FormControl.disable()` */
+    /** Señal interna para el estado disabled propagado desde `FormControl.disable()` */
     private readonly formDisabled = signal(false);
     /** Computed que combina `disabled()` (input) y `formDisabled` (desde CVA) */
     readonly effectiveDisabled = computed(() => this.disabled() || this.formDisabled());
 
-    internalValue: any = null;
+    internalValue: unknown = null;
 
     private readonly destroy$ = new Subject<void>();
     private readonly internalTrigger = signal(0);
 
-    private onChange: any = () => {};
-    private onTouched: any = () => {};
+    private onChange: (value: unknown) => void = noop;
+    private onTouched: () => void = noop;
 
     constructor() {
         effect(() => {
@@ -88,15 +94,15 @@ export class AsyncSelectComponent implements ControlValueAccessor, OnDestroy {
         this.destroy$.complete();
     }
 
-    writeValue(obj: any): void {
+    writeValue(obj: unknown): void {
         this.internalValue = obj;
     }
 
-    registerOnChange(fn: any): void {
+    registerOnChange(fn: (value: unknown) => void): void {
         this.onChange = fn;
     }
 
-    registerOnTouched(fn: any): void {
+    registerOnTouched(fn: () => void): void {
         this.onTouched = fn;
     }
 
@@ -109,7 +115,7 @@ export class AsyncSelectComponent implements ControlValueAccessor, OnDestroy {
         this.formDisabled.set(isDisabled);
     }
 
-    onSelectChange(value: any): void {
+    onSelectChange(value: unknown): void {
         this.internalValue = value;
         this.onChange(value);
     }
@@ -133,13 +139,13 @@ export class AsyncSelectComponent implements ControlValueAccessor, OnDestroy {
             takeUntil(this.destroy$),
             finalize(() => this.loading.set(false))
         ).subscribe({
-            next: (data: any[]) => {
+            next: (data: SelectItem[]) => {
                 this.items.set(data ?? []);
                 this.denied.set(false);
             },
-            error: (err: any) => {
+            error: (err: unknown) => {
                 this.items.set([]);
-                if (err?.status === 403) {
+                if (err instanceof HttpErrorResponse && err.status === 403) {
                     this.denied.set(true);
                     this.permissionDenied.emit(true);
                 } else {

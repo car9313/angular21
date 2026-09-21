@@ -6,7 +6,7 @@ import { AuthService } from '../../../modules/auth/services/auth.service';
 export interface QuickAccess {
     label: string;
     url: string;
-    routerLink: string | any[];
+    routerLink: string | unknown[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -21,8 +21,9 @@ export class QuickAccessService {
     readonly currentUrl = this._currentUrl.asReadonly();
     private authService = inject(AuthService);
     private readonly STORAGE_KEY = 'quick_access_history';
+    private readonly router = inject(Router);
 
-    constructor(private router: Router) {
+    constructor() {
         this._currentUrl.set(this.normalizeUrl(this.router.url));
 
         // 🔹 Inicializar con snapshot actual si está vacío
@@ -126,7 +127,7 @@ export class QuickAccessService {
         });
     }
 
-    private buildRouteCrumbs(route: ActivatedRouteSnapshot, parentUrl: string = ''): QuickAccess[] {
+    private buildRouteCrumbs(route: ActivatedRouteSnapshot, parentUrl = ''): QuickAccess[] {
         const crumbs: QuickAccess[] = [];
         const cfg = route.routeConfig;
 

@@ -9,9 +9,5 @@ import { TableModule } from 'primeng/table';
     styleUrl: './table-skeleton.component.scss'
 })
 export class TableSkeletonComponent {
-    products: any[] | undefined;
-
-    ngOnInit() {
-        this.products = Array.from({ length: 5 }).map((_, i) => `Item #${i}`);
-    }
+    readonly products = Array.from({ length: 5 }, (_, i) => `Item #${i}`);
 }

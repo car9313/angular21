@@ -25,7 +25,7 @@ export class BreadcrumbService {
         });
     }
 
-    private buildBreadCrumb(route: ActivatedRoute, url: string = '', crumbs: BreadCrumb[] = []): BreadCrumb[] {
+    private buildBreadCrumb(route: ActivatedRoute, url = '', crumbs: BreadCrumb[] = []): BreadCrumb[] {
         const children = route.children;
 
         if (!children || children.length === 0) {

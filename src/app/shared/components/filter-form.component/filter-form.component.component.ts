@@ -1,8 +1,7 @@
 import { Component, EventEmitter, Input, Output, Signal } from '@angular/core';
 import { Button } from 'primeng/button';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Tooltip } from 'primeng/tooltip';
-import { NgTemplateOutlet } from '@angular/common';
 
 @Component({
     selector: 'app-filter-form',
@@ -20,7 +19,7 @@ export class FilterFormComponentComponent {
 
     /** Eventos para acciones del formulario */
     @Output() apply = new EventEmitter<void>();
-    @Output() reset = new EventEmitter<void>();
+    @Output() resetFilters = new EventEmitter<void>();
 
     onApply() {
         this.apply.emit();

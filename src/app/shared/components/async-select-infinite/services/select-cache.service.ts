@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 
 export interface CacheData {
-    items: any[];
+    items: unknown[];
     cursor: string | null;
     hasMore: boolean;
 }

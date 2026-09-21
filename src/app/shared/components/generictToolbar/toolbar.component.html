@@ -2,7 +2,7 @@
     <div class="flex items-center gap-2 flex-1">
         @if (config().showAddButton !== false) {
             <p-button
-                *hasPermission="let ok; resource: resource(); actions: actions()"
+                *appHasPermission="let ok; hasPermissionResource: resource(); hasPermissionActions: actions()"
                 pTooltip="Adicionar"
                 tooltipPosition="top"
                 icon="pi pi-plus"
@@ -17,7 +17,7 @@
         @for (btn of extraButtons(); track btn.id) {
             @if (btn.visible !== false) {
                 @if (btn.permission) {
-                    <ng-container *hasPermission="let ok; resource: btn.permission.resource; actions: btn.permission.actions">
+                    <ng-container *appHasPermission="let ok; hasPermissionResource: btn.permission.resource; hasPermissionActions: btn.permission.actions">
                         <p-button
                             [label]="btn.label"
                             [icon]="btn.icon"

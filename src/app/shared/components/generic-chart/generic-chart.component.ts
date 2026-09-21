@@ -27,7 +27,7 @@ type ChartType = 'pie' | 'bar';
 })
 export class GenericChartComponent implements OnChanges {
     // ----- Inputs de configuración -----
-    @Input({ required: true }) data: any[] = [];
+    @Input({ required: true }) data: unknown[] = [];
     @Input() labelKey = 'label';
     @Input() valueKey = 'value';
     @Input() colorMap: Record<string, string> = {};
@@ -106,11 +106,14 @@ export class GenericChartComponent implements OnChanges {
             },
             tooltip: {
                 trigger: 'item',
-                formatter: (params: any) => `
-          <strong>${params.name}</strong><br />
-          ${this.tooltipLabel}: ${params.value}<br />
-          Porcentaje: ${params.percent}%
-        `
+                formatter: (params: unknown) => {
+                    const p = params as { name: string; value: number; percent: number };
+                    return `
+          <strong>${p.name}</strong><br />
+          ${this.tooltipLabel}: ${p.value}<br />
+          Porcentaje: ${p.percent}%
+        `;
+                }
             },
             legend: {
                 orient: 'vertical',
@@ -140,7 +143,10 @@ export class GenericChartComponent implements OnChanges {
                     label: {
                         show: true,
                         position: 'inside',
-                        formatter: (params: any) => `{value|${params.value}}\n{percent|${params.percent}%}`,
+                        formatter: (params: unknown) => {
+                            const p = params as { value: number; percent: number };
+                            return `{value|${p.value}}\n{percent|${p.percent}%}`;
+                        },
                         rich: {
                             value: { color: '#ffffff', fontSize: 13, fontWeight: 'bold', lineHeight: 18 },
                             percent: { color: '#ffffff', fontSize: 11, lineHeight: 14 }
@@ -185,8 +191,9 @@ export class GenericChartComponent implements OnChanges {
             tooltip: {
                 trigger: 'axis',
                 axisPointer: { type: 'shadow' },
-                formatter: (params: any[]) => {
-                    const item = params[0];
+                formatter: (params: unknown) => {
+                    const items = params as { name: string; value: number }[];
+                    const item = items[0];
                     return `<strong>${item.name}</strong><br />${this.tooltipLabel}: ${item.value}`;
                 }
             },
@@ -233,12 +240,16 @@ export class GenericChartComponent implements OnChanges {
     }
 
     // ----- Métodos auxiliares (usando los inputs) -----
-    private getValue(item: any): number {
-        return item[this.valueKey] ?? 0;
+    private getValue(item: unknown): number {
+        const value = (item as Record<string, unknown>)[this.valueKey];
+
+        return typeof value === 'number' ? value : 0;
     }
 
-    private getLabel(item: any): string {
-        return item[this.labelKey] ?? '';
+    private getLabel(item: unknown): string {
+        const label = (item as Record<string, unknown>)[this.labelKey];
+
+        return typeof label === 'string' ? label : '';
     }
 
     private getColor(label: string): string {

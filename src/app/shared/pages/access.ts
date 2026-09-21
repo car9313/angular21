@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 import { Location, NgOptimizedImage } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
@@ -32,12 +32,11 @@ import { AppFloatingConfigurator } from '../../layout/component/app.floatingconf
         </div>`
 })
 export class Access implements OnInit {
-    previousUrl: string = '';
+    previousUrl = '';
 
-    constructor(
-        private location: Location,
-        private router: Router
-    ) {}
+    private readonly location = inject(Location);
+
+    private readonly router = inject(Router);
 
     ngOnInit() {
         // Obtenemos la URL anterior del estado de navegación

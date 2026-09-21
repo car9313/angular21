@@ -2,6 +2,12 @@ import { Component, input, computed, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
+interface ColorTokens {
+    bg: string;
+    hoverBg: string;
+    text: string;
+}
+
 @Component({
     selector: 'app-stat-card',
     standalone: true,
@@ -45,7 +51,7 @@ export class StatCardComponent {
     linkClick = output<void>();
 
     // Mapa de colores usando variables CSS de PrimeNG
-    private colorMap: Record<string, any> = {
+    private colorMap: Record<string, ColorTokens> = {
         primary: { bg: 'var(--p-primary-500)', hoverBg: 'var(--p-primary-50)', text: 'var(--p-primary-500)' },
         danger: { bg: 'var(--p-red-500)', hoverBg: 'var(--p-red-50)', text: 'var(--p-red-500)' },
         warning: { bg: 'var(--p-yellow-500)', hoverBg: 'var(--p-yellow-50)', text: 'var(--p-yellow-500)' },

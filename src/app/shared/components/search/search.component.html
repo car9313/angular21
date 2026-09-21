@@ -1,7 +1,7 @@
 <div class="flex gap-2 items-center">
     <p-floatlabel variant="on">
-        <input pInputText type="text" [value]="text()" (input)="text.set($any($event.target).value)" (keyup.enter)="handleSearch()" />
-        <label class="text-gray-500">Buscar</label>
+        <input pInputText type="text" id="search-text" [value]="text()" (input)="text.set($any($event.target).value)" (keyup.enter)="handleSearch()" />
+        <label class="text-gray-500" for="search-text">Buscar</label>
     </p-floatlabel>
     <p-button type="button" icon="pi pi-search" [rounded]="true" [outlined]="!hasActiveSearch()" [disabled]="!hasSearchText()" pTooltip="Buscar" tooltipPosition="top" (click)="handleSearch()"></p-button>
     @if (hasSearchText() || hasActiveSearch()) {

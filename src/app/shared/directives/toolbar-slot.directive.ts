@@ -2,7 +2,7 @@
 import { Directive } from '@angular/core';
 
 @Directive({
-    selector: '[toolbarSlot]', // Puedes usar cualquier nombre
+    selector: '[appToolbarSlot]', // structural marker consumed by the toolbar
     standalone: true
 })
 export class ToolbarSlotDirective {}

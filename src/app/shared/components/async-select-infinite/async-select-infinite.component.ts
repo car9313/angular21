@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, OnDestroy, output, signal, untracked, inject, DestroyRef, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, OnDestroy, output, signal, untracked, inject, DestroyRef, OnInit, noop } from '@angular/core';
 import { FormsModule, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { merge, Observable, Subject, of, switchMap, catchError, mapTo, debounceTime, distinctUntilChanged, takeUntil, tap, finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -18,6 +18,13 @@ export interface PageResponse<T> {
     nextCursor: string | null;
 }
 
+/**
+ * Shape of the selectable options: objects with the keys named by the
+ * optionLabel / optionValue inputs. Typed as a record so the component stays
+ * item-agnostic while keeping dot-free dynamic access safe.
+ */
+type SelectItem = Record<string, unknown>;
+
 @Component({
     selector: 'app-async-select-infinite',
     standalone: true,
@@ -34,7 +41,7 @@ export interface PageResponse<T> {
 })
 export class AsyncSelectInfiniteComponent implements ControlValueAccessor, OnDestroy, OnInit {
     // ---- Inputs ----
-    loadPageFn = input.required<(cursor?: string, searchTerm?: string) => Observable<PageResponse<any>>>();
+    loadPageFn = input.required<(cursor?: string, searchTerm?: string) => Observable<PageResponse<SelectItem>>>();
     optionLabel = input('name');
     optionValue = input('id');
     placeholder = input('');
@@ -42,7 +49,7 @@ export class AsyncSelectInfiniteComponent implements ControlValueAccessor, OnDes
     inputId = input<string>('');
     showClear = input(true);
     disabled = input(false);
-    filterFn = input<((items: any[]) => any[]) | null>(null);
+    filterFn = input<((items: SelectItem[]) => SelectItem[]) | null>(null);
 
     containerClass = input<string>('');
     panelMaxHeight = input<string>('250px');
@@ -57,12 +64,12 @@ export class AsyncSelectInfiniteComponent implements ControlValueAccessor, OnDes
     enableSearch = input(true);
     cacheKey = input<string>('');
     debounceTimeMs = input(200);
-    findItemByValue = input<(value: any) => Observable<any>>(() => of(null));
+    findItemByValue = input<(value: unknown) => Observable<SelectItem | null>>(() => of(null));
 
     permissionDenied = output<boolean>();
 
     // ---- Estado ----
-    readonly items = signal<any[]>([]);
+    readonly items = signal<SelectItem[]>([]);
     readonly findingItem = signal(false);
     readonly cursor = signal<string | null>(null);
     readonly hasMore = signal<boolean>(true);
@@ -71,11 +78,11 @@ export class AsyncSelectInfiniteComponent implements ControlValueAccessor, OnDes
     readonly loadingMore = signal(false);
     readonly denied = signal(false);
     readonly error = signal(false);
-    readonly errorDetail = signal<any>(null);
+    readonly errorDetail = signal<unknown>(null);
     readonly searchTerm = signal('');
 
     // Variable local para el input de búsqueda (para el botón manual)
-    searchTermInput: string = '';
+    searchTermInput = '';
 
     private readonly formDisabled = signal(false);
     readonly effectiveDisabled = computed(() => this.disabled() || this.formDisabled());
@@ -89,9 +96,9 @@ export class AsyncSelectInfiniteComponent implements ControlValueAccessor, OnDes
     });
 
     // ---- CVA ----
-    internalValue: any = null;
-    private onChange: any = () => {};
-    private onTouched: any = () => {};
+    internalValue: unknown = null;
+    private onChange: (value: unknown) => void = noop;
+    private onTouched: () => void = noop;
 
     // ---- Destroy ----
     private destroyRef = inject(DestroyRef);
@@ -181,13 +188,13 @@ export class AsyncSelectInfiniteComponent implements ControlValueAccessor, OnDes
     }
 
     // ---- CVA methods ----
-    writeValue(obj: any): void {
+    writeValue(obj: unknown): void {
         this.internalValue = obj;
     }
-    registerOnChange(fn: any): void {
+    registerOnChange(fn: (value: unknown) => void): void {
         this.onChange = fn;
     }
-    registerOnTouched(fn: any): void {
+    registerOnTouched(fn: () => void): void {
         this.onTouched = fn;
     }
     setDisabledState(isDisabled: boolean): void {
@@ -195,7 +202,7 @@ export class AsyncSelectInfiniteComponent implements ControlValueAccessor, OnDes
     }
 
     // ---- Eventos del select ----
-    onSelectChange(value: any): void {
+    onSelectChange(value: unknown): void {
         this.internalValue = value;
         this.onChange(value);
     }
@@ -253,12 +260,12 @@ export class AsyncSelectInfiniteComponent implements ControlValueAccessor, OnDes
                 })
             )
             .subscribe({
-                next: (res: PageResponse<any>) => {
+                next: (res: PageResponse<SelectItem>) => {
                     this.items.update((prev) => [...prev, ...res.objects]);
                     this.cursor.set(res.nextCursor);
                     this.hasMore.set(res.nextCursor !== null);
                 },
-                error: (err: any) => {
+                error: (err: unknown) => {
                     this.error.set(true);
                     this.errorDetail.set(err);
                     this.loadingMore.set(false);

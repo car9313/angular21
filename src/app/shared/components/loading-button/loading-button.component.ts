@@ -24,8 +24,9 @@ export class LoadingButtonComponent {
         return `${this.customClass()} ${this.loading() ? 'opacity-80' : ''}`;
     }
 
-    get buttonStyles(): any {
+    get buttonStyles(): Record<string, string> {
         const textColor = this.textColor();
+
         return textColor ? { color: textColor } : {};
     }
 

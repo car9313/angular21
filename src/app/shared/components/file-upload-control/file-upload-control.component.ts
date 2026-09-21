@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ViewChild, computed, effect, forwardRef, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild, computed, effect, forwardRef, input, signal, noop } from '@angular/core';
 import { AbstractControl, ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors, Validator } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { FileSelectEvent, FileUpload } from 'primeng/fileupload';
@@ -44,11 +44,11 @@ export class AppFileUploadControlComponent implements ControlValueAccessor, Vali
     readonly maxFileSizeBytes = computed(() => this.maxSizeMb() * 1024 * 1024);
     readonly fileName = computed(() => this.selectedFile()?.name ?? '');
 
-    private readonly fileNamePattern = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s_\-\.()]+$/;
+    private readonly fileNamePattern = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s_\-().]+$/;
 
-    private onChange: (value: File | null) => void = () => {};
-    private onTouched: () => void = () => {};
-    private onValidatorChange: () => void = () => {};
+    private onChange: (value: File | null) => void = noop;
+    private onTouched: () => void = noop;
+    private onValidatorChange: () => void = noop;
 
     constructor() {
         effect(() => {
@@ -81,7 +81,8 @@ export class AppFileUploadControlComponent implements ControlValueAccessor, Vali
         this.disabled.set(isDisabled);
     }
 
-    validate(_: AbstractControl<File | null>): ValidationErrors | null {
+    validate(control: AbstractControl<File | null>): ValidationErrors | null {
+        void control;
         const file = this.selectedFile();
 
         if (file) {

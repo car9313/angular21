@@ -2,7 +2,7 @@
 import { Component, input } from '@angular/core';
 import { FloatLabel } from 'primeng/floatlabel';
 import { DatePicker } from 'primeng/datepicker';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
 
 @Component({
     selector: 'app-filter-datepicker',
@@ -16,7 +16,7 @@ import { ReactiveFormsModule } from '@angular/forms';
     `
 })
 export class FilterDatepickerComponent {
-    control = input.required<any>();
+    control = input.required<FormControl<unknown>>();
     label = input.required<string>();
     id = input.required<string>();
     containerClass = input<string>('w-full sm:w-auto min-w-[150px] sm:max-w-[200px]');
