@@ -26,6 +26,24 @@ Construir una aplicación **Angular premium, escalable y mantenible** que reutil
 
 ## 3. Arquitectura (la constitución)
 
+### ¿Qué es `@ngrx/signals` y por qué está en el stack?
+
+**Qué es**: la librería oficial del org NgRx para gestión de estado con signals de Angular. Su unidad principal es el **`signalStore`**: un store creado por composición de features (`withState`, `withComputed`, `withMethods`, `withHooks`) que se declara como servicio inyectable (`{ providedIn: 'root' }`) y expone signals sincronizadas con la detección de cambios **zoneless** de Angular 21. También existe `signalState` para estado ligero local a un componente.
+
+**Por qué se eligió (y no otra cosa)**:
+1. **Es la lib del org oficial de NgRx**: mantenimiento alineado con los majors de Angular y doc sólida — a diferencia de Elf/TanStack (comunidad) o de reescribir el plumbling de signals a mano.
+2. **Es signal-nativa**: en Angular 21 (zoneless) el estado en signals se integra de forma nativa con `computed`/`effect`/`@if` en templates. No hay capa extra de "rxjs reactivo" encima.
+3. **Composición de features**: el patrón `withState`/`withComputed`/`withMethods`/`withHooks` ES nuestra constitución — estado derivado = `computed` (feature `withComputed`), un solo escritor vía `patchState`, efectos en el propio store (`withHooks`). La librería nos obliga a hacer lo que ya decidimos.
+4. **Testabilidad**: los stores se instancian e inyectan en `TestBed`, y se testean como objetos puros (así están los specs actuales de `SessionStore`).
+5. **Decisión explícita de límite**: rechazamos **NgRx Traits** (extensiones comunitarias de paginación/filtrado) porque el equipo quiere ser dueño de esa lógica — pero **el núcleo oficial `@ngrx/signals` SÍ se usa** como el esqueleto de todo store. La reutilización propia llega en Fase 3 con la feature casera `withServerTable`.
+
+**Cómo se usa en ESTE proyecto hoy**:
+- `core/store/session.store.ts` — el primer (y por ahora único) `signalStore` global: `withState({user, permissions, configLoaded})` + `withComputed(isAuthenticated, permissionMap)` + `withMethods(setUser, setPermissions, markConfigLoaded, reset, hasPermission)`. Lo consumen el menú RBAC (`MenuPermissionService`) y lo escribirán los use-cases de login (Fase 2.4).
+- Los stores de pantalla/feature (Fase 3) se construirán igual, componiendo `withServerTable` (feature propia) sobre `@ngrx/signals`.
+- El estado transitorio de componentes (`signal`/`computed`) NO requiere la librería — solo los stores que viven como estado compartido.
+
+### Las 4 capas de estado
+
 - **4 capas de estado**: `signal()` local → store por pantalla → `SessionStore` global (`@ngrx/signals`) → `httpResource` para catálogos. El `theme` NO entra al SessionStore (lo posee `LayoutService`).
 - **Dirección de dependencias**: `component → store → api-service`. Nunca al revés.
 - **Reglas**: derivado = `computed` (nunca estado duplicado) · un solo escritor por campo · efectos en features del store (no en componentes) · los stores no se importan entre sí · solo `TokenAuthService` toca storage.
