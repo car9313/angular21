@@ -63,4 +63,21 @@ describe('TokenAuthService', () => {
         expect(sessionStorage.getItem('access_token')).toBeNull();
         expect(localStorage.getItem('refresh_token')).toBeNull();
     });
+
+    it('isRefreshTokenExpired() is true when no expiry was persisted (fail closed)', async () => {
+        await service.persist({ access: 'at', refresh: 'rt', expiration: 1 });
+        expect(await service.isRefreshTokenExpired()).toBe(true);
+    });
+
+    it('isRefreshTokenExpired() reflects the persisted refresh expiration', async () => {
+        await service.persist({ access: 'at', refresh: 'rt', expiration: 1, refreshExpiration: Date.now() + 60_000 });
+        expect(await service.isRefreshTokenExpired()).toBe(false);
+    });
+
+    it('refreshAccess() short-circuits to null when the refresh token is expired — no network call', async () => {
+        await service.persist({ access: 'at', refresh: 'rt', expiration: 1, refreshExpiration: Date.now() - 1000 });
+        const result = await service.refreshAccess();
+        expect(result).toBeNull();
+        expect(await service.getRefreshToken()).toBe('rt');
+    });
 });

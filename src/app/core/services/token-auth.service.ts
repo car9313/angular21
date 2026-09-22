@@ -21,6 +21,8 @@ interface StoredTokens {
     refresh: string;
     /** Epoch milliseconds when the access token expires. */
     expiration: number;
+    /** Epoch milliseconds when the refresh token expires (if known). */
+    refreshExpiration?: number;
 }
 
 /**
@@ -65,13 +67,27 @@ export class TokenAuthService {
         return (await this.storage.getPersistent<StoredTokens>(REFRESH_TOKEN_KEY))?.refresh ?? null;
     }
 
-    async persist(tokens: { access: string; refresh: string; expiration: number }): Promise<void> {
+    /**
+     * True when the refresh token is known to be expired (or its expiry is
+     * unknown — fail closed). Mirrors the reference contract: the login
+     * response carries `refreshTokenExpiresIn` (seconds), persisted alongside
+     * the token so refresh() can short-circuit before a doomed network call.
+     */
+    async isRefreshTokenExpired(): Promise<boolean> {
+        const stored = await this.storage.getPersistent<StoredTokens>(REFRESH_TOKEN_KEY);
+        if (!stored?.refreshExpiration) {
+            return true;
+        }
+        return Date.now() > stored.refreshExpiration;
+    }
+
+    async persist(tokens: { access: string; refresh: string; expiration: number; refreshExpiration?: number }): Promise<void> {
         this.accessTokenSignal.set(tokens.access);
         this.accessTokenExpirationSignal.set(tokens.expiration);
 
         await this.storage.setSession(ACCESS_TOKEN_KEY, tokens.access);
         await this.storage.setSession(TOKEN_EXPIRATION_KEY, tokens.expiration);
-        await this.storage.setPersistent(REFRESH_TOKEN_KEY, { access: tokens.access, refresh: tokens.refresh, expiration: tokens.expiration });
+        await this.storage.setPersistent(REFRESH_TOKEN_KEY, { access: tokens.access, refresh: tokens.refresh, expiration: tokens.expiration, ...(tokens.refreshExpiration !== undefined ? { refreshExpiration: tokens.refreshExpiration } : {}) });
     }
 
     /**
@@ -83,6 +99,10 @@ export class TokenAuthService {
         const refreshToken = await this.getRefreshToken();
 
         if (!refreshToken) {
+            return null;
+        }
+
+        if (await this.isRefreshTokenExpired()) {
             return null;
         }
 
