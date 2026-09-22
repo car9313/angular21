@@ -13,11 +13,15 @@ export const appConfig: ApplicationConfig = {
     providers: [
         // Block app bootstrap until the runtime config is loaded, then
         // rehydrate the session from storage (F5 must not log the user out).
-        // Both use raw/configless paths on purpose: config bypasses the auth
-        // interceptors; restore re-fetches identity only when a token exists.
-        provideAppInitializer(async () => {
-            await inject(ConfigService).load();
-            await inject(RestoreSessionUseCase).execute();
+        // inject() is only valid in the SYNCHRONOUS part of this callback —
+        // capture both instances first, then await (NG0203 otherwise).
+        provideAppInitializer(() => {
+            const config = inject(ConfigService);
+            const restore = inject(RestoreSessionUseCase);
+            return (async () => {
+                await config.load();
+                await restore.execute();
+            })();
         }),
         provideRouter(appRoutes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }), withEnabledBlockingInitialNavigation()),
         provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
