@@ -9,7 +9,7 @@
 
 Construir una aplicación **Angular premium, escalable y mantenible** que reutilice el **mismo cascarón de seguridad y layout** de la app "Devueltos" (referencia: `D:\Trabajo\Proyectos\TFS\DEVUELTO\devueltos_ui`), pero **reconstruido con mejores prácticas modernas**.
 
-**Regla de oro: devueltos es REFERENCIA, no código a copiar.** De él se extrae conocimiento de dominio (contrato de paginación .NET, modelo RBAC, flujo de auth, edge cases); su deuda NO se porta (crypto-js, `any` a granel, widgets demo, código muerto, BehaviorSubject duales).
+**Regla de oro: devueltos es REFERENCIA, no código a copiar.** De él se extrae conocimiento de dominio (contrato de paginación .NET, modelo RBAC, flujo de auth, logout `POST /api/auth/logout` con `{ refreshToken }`, edge cases); su deuda NO se porta (crypto-js, `any` a granel, widgets demo, código muerto, BehaviorSubject duales). Ruta local de la referencia: `C:\Users\Admin\Documents\claudia\devueltos` (en la otra PC: `D:\Trabajo\Proyectos\TFS\DEVUELTO\devueltos_ui`).
 
 ## 2. Stack decidido (cambios importantes si se tocan)
 
@@ -47,6 +47,8 @@ Construir una aplicación **Angular premium, escalable y mantenible** que reutil
 - **4 capas de estado**: `signal()` local → store por pantalla → `SessionStore` global (`@ngrx/signals`) → `httpResource` para catálogos. El `theme` NO entra al SessionStore (lo posee `LayoutService`).
 - **Dirección de dependencias**: `component → store → api-service`. Nunca al revés.
 - **Reglas**: derivado = `computed` (nunca estado duplicado) · un solo escritor por campo · efectos en features del store (no en componentes) · los stores no se importan entre sí · solo `TokenAuthService` toca storage.
+- **Auth en línea con devueltos (revisión 2026-09-22, equipo)**: el **refresh NO rota** (el backend devuelve solo access nuevo — como devueltos), pero sí se **trackea la expiración del refresh token** (`refreshTokenExpiresIn` en segundos → `isRefreshTokenExpired()` + short-circuit en `refreshAccess` — la "optimización" pedida). El **fingerprint es un string cualquiera** (UUID por login, `crypto.randomUUID()`, SOLO en el body de login — donde lo manda devueltos; nunca en refresh/otros requests). Rutas públicas: **string mágico `resource: 'Public'`** (como devueltos) + defensa extra "sin resource = pública".
+- **Store y IO (decisión 2026-09-22)**: los stores de **sesión** (SessionStore) son puros — escriben solo vía métodos sin IO y exponen queries reactivas; los **use-cases** (login, logout, refresh) orquestan servicios de infra y llaman a los métodos del store; la navegación jamás entra al store (no es estado). En cambio, los stores de **pantalla** (Fase 3, `withServerTable`) SÍ hacen sus fetches en `withMethods` porque el fetch es parte del ciclo de vida de ese estado. Criterio: no es "UI vs no UI", es quién posee el ciclo de vida del estado.
 - **Carpetas**: `core/` (interfaces, builders, services, guards, interceptors, helpers, store, constants, utils) · `modules/<feature>/{domain,application,infrastructure,presentation}` · `shared/` (components, pages, directives). Bootstrap en `src/app/` (`main.ts` es lo único en `src/`).
 
 ## 4. Dónde estamos
@@ -71,23 +73,32 @@ Stack fijado en 21, demos de Sakai eliminadas, `angular.json` saneado (builder `
 | 2.1 Breadcrumbs + PageTitle (componentes + servicio + wiring en `app.layout`/`app.topbar` + specs) | ✅ |
 | 2.1+ Pase de tipado del lote `shared/` copiado de devueltos (async-select[–infinite], chip-navigation, file-upload, filter-*, generic-chart, stat-card, search[-bar], spinner, table-skeleton, info-summary, has-permission, toolbar, permissions-tree, toolbar-slot, breadcrumbs) — **lint 0, 56 tests verdes** | ✅ |
 | 2.1+ Mocks demo de devueltos **ELIMINADOS** (`shared/mocks/`) — no se portan | ✅ |
-| 2.2 User dropdown + logout en topbar | 🔲 |
-| 2.3 Traducción ES de PrimeNG (`translation`) | 🔲 |
-| 2.4 Login real + guards (auth/guest/permission) + directiva `*appHasPermission` sobre SessionStore | 🔲 |
+| 2.2 User dropdown + logout en topbar (`LogoutService`: revocación server best-effort `POST /api/auth/logout` `{refreshToken}` vía raw `HttpBackend` + `TokenAuthService.clear()` + `SessionStore.reset()` + redirect `/auth/login`; `UserMenu` con `p-menu` popup alimentado por `SessionStore`; demo Calendar/Messages/Profile y botón ellipsis eliminados) | ✅ verificado 2026-09-21 (lint 0 · 6 specs nuevos verdes · build OK 4.9s) |
+| 2.3 Traducción ES de PrimeNG (`translation`) | ✅ verificado 2026-09-22 (`core/constants/primeng-es-translation.ts` tipado con `Translation` de `primeng/api` — NO `primeng/config`, que no re-exporta; wired en `providePrimeNG` de `app.config.ts` + spec de contrato ×3; lint 0 · 9/9 specs del batch verdes · build OK) |
+| 2.4 Login real + guards (auth/guest/permission) + directiva `*appHasPermission` sobre SessionStore | ✅ implementado y verificado 2026-09-22 — login real (`POST /api/auth/login` + `GET /api/auth/user/current`, fingerprint `crypto.randomUUID`, use-case `LoginUseCase` hidrata `SessionStore` con permisos aplanados), guards `auth`/`guest`/`permission` (público sin `data.resource`, default `Read`, redirect `/auth/access`), login page ES con form reactivo + `p-message` de error + `returnUrl`, wiring en `auth.routes` con `guestGuard`; duplicados demo de `shared/pages` (access/error/empty) ELIMINADOS. Gates: lint 0 · 13/13 specs nuevos · build OK. ⚠️ Pendiente acoplado: verificación runtime de la directiva `*appHasPermission` reescrita — depende de que se aplique manualmente la unificación RBAC (§5.1) |
 | 2.5 Módulo de seguridad (usuarios/roles/auditorías/configuración) + rutas con `data: { title, breadcrumb }` | 🔲 |
 | 2.6 (media) Persistencia de layout, overlay de carga, chips historial, inactivity | 🔲 |
 
-**Tests actuales: 56 verdes** (builder, config, http, token, interceptor, session store, menu RBAC, breadcrumbs, page-title, smoke).
+**Tests actuales: 87 esperados** — 56 previos (no corridos en batch hoy; estructuralmente no afectados) + 6 de 2.2 + 3 de 2.3 + 13 de 2.4 + 9 nuevos del realineamiento auth/refresh/fingerprint/'Public' (token-auth +4, guards +1, login.auth-flow), todos verificados por batch (`--include`).
+
+### ✅ Verificación Fase 2.2 — COMPLETA (2026-09-21, esta PC)
+
+- `ng lint` → 0 · specs nuevos `--include='**/{logout.service,app.user-menu}.spec.ts'` → **6/6 verdes** · `ng build` → completo (4.9s, `dist/sakai-ng`).
+- **Toolchain resuelto en ESTA PC**: el shim `pnpm.exe` de nvm (sin versiones) fue renombrado a `pnpm.exe.broken-nvm-shim`; el global npm expone **pnpm 10.34.5** y `pnpm exec ng ...` funciona directo (lockfile 9.0 intacto). NO usar pnpm@12 global — migraría el lockfile.
+- **Bugs encontrados y corregidos durante la verificación** (lecciones para futuros specs):
+  - `vi.fn()` sin tipar no asigna a `Router['navigate']` (TS2345) → tipar con `vi.fn<Router['navigate']>()`.
+  - **Carrera en specs con requests async**: `expectOne` corrió antes de que el POST saliera (la lectura de storage demora el dispatch) → envolver con `await vi.waitFor(() => httpMock.expectOne(url))`.
+- Pendiente (opcional, no bloqueante): una corrida completa de la suite (62) — los specs corren ~1.5s por archivo; si molesta el arranque por archivo, evaluar `isolate: false` en la config de vitest.
+- Pendiente de validar contra backend real (cuando haya login, 2.4): casing del body de logout (`{ refreshToken }` camelCase según devueltos; el refresh usa `{ RefreshToken }` PascalCase — .NET bindea case-insensitive).
 
 ## 5. Lo que falta (orden recomendado)
 
-1. **Reconciliar DOS `TokenAuthService`** (CRÍTICO — conflicto arquitectónico real):
-   - `core/services/token-auth.service.ts` — **v2, el que usa el interceptor** (nuestra implementación). ✅
-   - `modules/auth/infrastructure/storage/token-auth.service.ts` — copia de devueltos (con `userRoles` y demás) usada por `has-permission.directive` y `toolbar`. ⚠️
-   - Decisión: unificar en la v2 + leer roles/permisos de `SessionStore`, o reescribir la directiva/`PermissionService` contra el core. **Pendiente de decidir con el equipo.**
-2. **Duplicados de páginas demo**: `error.ts`/`access.ts` existen en `pages/auth/` (las usadas por `auth.routes`) y también en `shared/pages/`. Cuando se construya el login real (2.4→2.5) se decide cuál queda y se borra el demo.
-3. **`has-permission.directive`**: la microsintaxis `*appHasPermission="let ok; hasPermissionResource: ...; hasPermissionActions: ..."` quedó **renombrada y lint-clean, pero sin verificar en runtime** que `createEmbeddedView` entregue contexto (`ok`). Verificar comportamiento en Fase 2.4.
-4. Fase 2.2 → 2.6 (tabla de arriba).
+1. **Unificar RBAC sobre `SessionStore`** (decisión TOMADA con el equipo — **PENDIENTE DE APLICAR MANUALMENTE**):
+   - Realidad verificada en disco (2026-09-21): **NO hay dos `TokenAuthService`** — la "copia de devueltos" (`modules/auth/...`) y `PermissionService` NUNCA existieron. El problema real son **3 archivos huérfanos con imports fantasma** (pasan lint/build solo porque `tsconfig.app.json` arranca en `main.ts` y nadie los importa): `has-permission.directive.ts` y `toolbar.component.ts` → importan `PermissionService` + `modules/.../token-auth.service`; `chip-navigation-history/quick-access.service.ts` → importa `modules/auth/services/auth.service`.
+   - Decisión (opción A): **no se recrea `PermissionService`**. Directiva y toolbar se reescriben contra `SessionStore.hasPermission` (signal inputs + `computed` + `effect`, contexto `{ ok }` — resuelve también el ítem 3). Bypass `'Public'` NO se porta (no está en `RESOURCES`; el guard de 2.4 tratará ruta sin `data.resource` como pública). `quick-access` se reescribe en 2.6 (chips). La spec completa para aplicar quedó entregada en la conversación (directiva reescrita + spec + cambios de toolbar + commits sugeridos).
+2. **Duplicados de páginas demo**: ✅ RESUELTO en 2.4 — `pages/auth/` es la real (login ES + guards); los duplicados demo de `shared/pages/` (`access`, `error`, `empty`) fueron ELIMINADOS; queda solo `notfound` (único importado por `app.routes`).
+3. **`has-permission.directive`**: se resuelve con la reescritura del ítem 1 (contexto `{ ok }` en `createEmbeddedView`). Mientras no se aplique, sigue el estado previo (microsintaxis renombrada, runtime sin verificar).
+4. Verificar 2.2 (bloque de arriba) y luego Fase 2.3 → 2.6 (tabla de arriba).
 5. **Fase 3**: `withServerTable` (feature propia con tests: stale responses, page cache) + shared UI (tabla, toolbar, filtros, async-select, skeletons) + catálogos con `httpResource`.
 6. **Fase 4**: screen piloto end-to-end validando el patrón completo.
 
@@ -102,6 +113,7 @@ pnpm exec ng build
 ```
 
 - **pnpm**: usar siempre `pnpm exec ng ...` (los binarios no están en el PATH de shell). pnpm es estricto con peer deps: si un `pnpm add` avisa de peers, es real.
+- **Esta PC (claudia.alfonso, única en uso desde 2026-09-22)**: pnpm global fijado en **10.34.5** (la 12.4.2 que venía del npm global fue degradada; lockfile v9 intacto). `pnpm exec ng ...` funciona directo. El repo git vive en esta carpeta (`.git` restaurado desde la copia 'salva' el 2026-09-22).
 - Git workflow: trabajar en la rama `feat/core-foundation`; commits por unidad; al final PR a `main`.
 
 ## 7. Gotchas y lecciones (léase antes de tocar)
