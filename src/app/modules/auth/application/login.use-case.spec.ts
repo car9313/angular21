@@ -24,7 +24,7 @@ describe('LoginUseCase', () => {
                 provideHttpClient(),
                 provideHttpClientTesting(),
                 provideRouter([]),
-                { provide: FingerprintService, useValue: { get: () => 'fp-123' } },
+                { provide: FingerprintService, useValue: { get: async () => 'fp-123' } },
                 { provide: ConfigService, useValue: { urlWith: (sub: string) => `http://test-api${sub}` } }
             ]
         });

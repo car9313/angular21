@@ -24,7 +24,9 @@ export class LoginUseCase {
     private readonly session = inject(SessionStore);
 
     async execute(username: string, password: string): Promise<void> {
-        const fingerprint = this.fingerprint.get();
+        // PERSISTENT device fingerprint (generated once, stored, reused):
+        // the backend's single-session rule recognizes the browser by it.
+        const fingerprint = await this.fingerprint.get();
         const tokens = await this.repository.login({ username, password, fingerprint });
 
         // Access token must be persisted BEFORE getCurrentUser: the Bearer

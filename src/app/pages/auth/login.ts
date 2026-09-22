@@ -9,6 +9,23 @@ import { RippleModule } from 'primeng/ripple';
 import { AppFloatingConfigurator } from '../../layout/component/app.floatingconfigurator';
 import { LoginUseCase } from '../../modules/auth/application/login.use-case';
 
+/** Shape of the backend's ProblemDetails error body. */
+interface ProblemDetailsLike {
+    title?: string;
+    detail?: string;
+}
+
+/**
+ * Maps a failed login to the user-facing message: the backend's ProblemDetails
+ * detail when present (e.g. "Existe una sesión activa desde otro navegador"),
+ * otherwise the generic credentials message.
+ */
+function extractLoginError(error: unknown): string {
+    const problem = (error as { error?: ProblemDetailsLike } | null)?.error;
+    const detail = problem?.detail?.trim();
+    return detail || 'Usuario o contraseña incorrectos. Intentá de nuevo.';
+}
+
 @Component({
     selector: 'app-login',
     standalone: true,
@@ -74,8 +91,8 @@ export class Login {
             // No returnUrl tracking (team decision 2026-09-22, parity with
             // the reference project): login always lands on the home page.
             await this.router.navigateByUrl('/');
-        } catch {
-            this.errorMessage.set('Usuario o contraseña incorrectos. Intentá de nuevo.');
+        } catch (error) {
+            this.errorMessage.set(extractLoginError(error));
         } finally {
             this.submitting.set(false);
         }
