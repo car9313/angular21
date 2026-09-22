@@ -65,6 +65,7 @@ Stack fijado en 21, demos de Sakai eliminadas, `angular.json` saneado (builder `
 | 4 | Web Crypto + `SessionStorageService` + `TokenAuthService` (signals + refresh raw) | ✅ |
 | 5 | `AuthInterceptor` (Bearer, 401 **single-flight**, 403, 418; exclusiones **endpoint-específicas**: login/refresh-token/logout van sin Bearer, `user/current` SÍ lo lleva — fix 5850544) | ✅ |
 | 6 | `SessionStore` (currentUser, permissions, configLoaded; `hasPermission`/`reset`) | ✅ |
+| 6+ | **Restauración de sesión**: `SessionReadyService` (barrera one-shot en `core/guards/`) — el primer guard dispara `RestoreSessionUseCase` (tokens → `user/current` → store; fail closed) y todos los guards esperan la misma promesa. SIN `APP_INITIALIZER` (un solo dueño; evita doble `user/current` al boot). Fix del bounce F5→login (commit post-975e9e0) | ✅ |
 
 ### ⚠️ Fase 2 — Seguridad + layout (EN CURSO)
 | Sub | Estado |
