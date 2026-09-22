@@ -3,6 +3,7 @@ import { HttpClient, HttpBackend } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { ConfigService } from './config.service';
 import { SessionStorageService } from './session-storage.service';
+import { expiryFromLifetime } from '../utils/token-expiry';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
@@ -12,7 +13,7 @@ const TOKEN_EXPIRATION_KEY = 'access_token_expiration';
 interface RefreshResponseBody {
     accessToken: string;
     tokenType: string;
-    /** Access token lifetime in seconds. */
+    /** Access token lifetime in MINUTES (see core/utils/token-expiry). */
     expiresIn: number;
 }
 
@@ -69,9 +70,10 @@ export class TokenAuthService {
 
     /**
      * True when the refresh token is known to be expired (or its expiry is
-     * unknown — fail closed). Mirrors the reference contract: the login
-     * response carries `refreshTokenExpiresIn` (seconds), persisted alongside
-     * the token so refresh() can short-circuit before a doomed network call.
+     * unknown — fail closed). Tracks the login response's `refreshTokenExpiresIn`
+     * (MINUTES — backend contract, confirmed 2026-09-22; the body is the
+     * source of truth), persisted alongside the token so refresh() can
+     * short-circuit before a doomed network call.
      */
     async isRefreshTokenExpired(): Promise<boolean> {
         const stored = await this.storage.getPersistent<StoredTokens>(REFRESH_TOKEN_KEY);
@@ -109,7 +111,7 @@ export class TokenAuthService {
         try {
             const body = await lastValueFrom(this.rawHttp.post<RefreshResponseBody>(`${this.config.url}/api/auth/refresh-token`, { RefreshToken: refreshToken }));
 
-            const expiration = Date.now() + Number(body.expiresIn) * 1000;
+            const expiration = expiryFromLifetime(body.expiresIn);
             this.accessTokenSignal.set(body.accessToken);
             this.accessTokenExpirationSignal.set(expiration);
             await this.storage.setSession(ACCESS_TOKEN_KEY, body.accessToken);

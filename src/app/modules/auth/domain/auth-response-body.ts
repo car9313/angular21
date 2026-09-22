@@ -8,9 +8,10 @@ export interface LoginResponseBody {
     tokenType: string;
     issuedAt: string;
     refreshToken: string;
-    /** Access token lifetime in seconds. */
+    /** Access token lifetime in MINUTES (backend contract, confirmed 2026-09-22; the body is the source of truth). */
     expiresIn: number;
-    refreshTokenExpiresIn: string;
+    /** Refresh token lifetime in MINUTES. */
+    refreshTokenExpiresIn: number;
 }
 
 export interface SessionUserDto {

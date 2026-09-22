@@ -46,7 +46,7 @@ describe('LoginUseCase', () => {
     async function respondHappyPath(): Promise<void> {
         const loginReq = await vi.waitFor(() => httpMock.expectOne(LOGIN_URL));
         expect(loginReq.request.body).toEqual({ username: 'aruiz', password: 'secret', fingerprint: 'fp-123' });
-        loginReq.flush({ accessToken: 'at-1', tokenType: 'Bearer', issuedAt: 'now', refreshToken: 'rt-1', expiresIn: 300, refreshTokenExpiresIn: '1d' });
+        loginReq.flush({ accessToken: 'at-1', tokenType: 'Bearer', issuedAt: 'now', refreshToken: 'rt-1', expiresIn: 300, refreshTokenExpiresIn: 600 });
 
         const userReq = await vi.waitFor(() => httpMock.expectOne(CURRENT_USER_URL));
         userReq.flush({
@@ -92,11 +92,35 @@ describe('LoginUseCase', () => {
         expect(await tokenAuth.getAccessToken()).toBeNull();
     });
 
+    it('interprets expiresIn / refreshTokenExpiresIn as MINUTES (backend contract — regression against the seconds trap)', async () => {
+        const before = Date.now();
+        const done = useCase.execute('aruiz', 'secret');
+
+        const loginReq = await vi.waitFor(() => httpMock.expectOne(LOGIN_URL));
+        loginReq.flush({ accessToken: 'at-1', tokenType: 'Bearer', issuedAt: 'now', refreshToken: 'rt-1', expiresIn: 1000, refreshTokenExpiresIn: 500 });
+
+        const userReq = await vi.waitFor(() => httpMock.expectOne(CURRENT_USER_URL));
+        userReq.flush({ id: '1', username: 'aruiz', fullName: 'Ana Ruiz', roles: [] });
+
+        await done;
+
+        // 1000 minutes ≈ 16.6 h. If the code ever reads them as seconds again,
+        // the expiration lands ~60x sooner and this window fails.
+        const after = Date.now();
+        const accessExpiration = tokenAuth.getAccessTokenExpiration();
+        expect(accessExpiration).not.toBeNull();
+        expect(accessExpiration!).toBeGreaterThanOrEqual(before + 1000 * 60_000);
+        expect(accessExpiration!).toBeLessThanOrEqual(after + 1000 * 60_000);
+
+        // Refresh expiry (500 minutes ahead) must read as still valid.
+        expect(await tokenAuth.isRefreshTokenExpired()).toBe(false);
+    });
+
     it('does NOT touch the store when the identity call fails after a successful login', async () => {
         const done = useCase.execute('aruiz', 'secret');
 
         const loginReq = await vi.waitFor(() => httpMock.expectOne(LOGIN_URL));
-        loginReq.flush({ accessToken: 'at-1', tokenType: 'Bearer', issuedAt: 'now', refreshToken: 'rt-1', expiresIn: 300, refreshTokenExpiresIn: '1d' });
+        loginReq.flush({ accessToken: 'at-1', tokenType: 'Bearer', issuedAt: 'now', refreshToken: 'rt-1', expiresIn: 300, refreshTokenExpiresIn: 600 });
 
         const userReq = await vi.waitFor(() => httpMock.expectOne(CURRENT_USER_URL));
         userReq.flush({ message: 'boom' }, { status: 500, statusText: 'Server Error' });

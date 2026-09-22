@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { AuthRepository } from '../infrastructure/http/auth-repository';
 import { FingerprintService } from '../infrastructure/fingerprint.service';
 import { TokenAuthService } from '../../../core/services/token-auth.service';
+import { expiryFromLifetime } from '../../../core/utils/token-expiry';
 import { SessionStore } from '../../../core/store/session.store';
 
 /**
@@ -28,11 +29,12 @@ export class LoginUseCase {
 
         // Access token must be persisted BEFORE getCurrentUser: the Bearer
         // interceptor needs it for the identity call.
+        // Lifetimes are MINUTES per the backend contract (see token-expiry).
         await this.tokenAuth.persist({
             access: tokens.accessToken,
             refresh: tokens.refreshToken,
-            expiration: Date.now() + Number(tokens.expiresIn) * 1000,
-            refreshExpiration: Date.now() + Number(tokens.refreshTokenExpiresIn) * 1000
+            expiration: expiryFromLifetime(tokens.expiresIn),
+            refreshExpiration: expiryFromLifetime(tokens.refreshTokenExpiresIn)
         });
 
         const user = await this.repository.getCurrentUser();

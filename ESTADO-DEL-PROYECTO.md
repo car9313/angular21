@@ -47,7 +47,7 @@ Construir una aplicación **Angular premium, escalable y mantenible** que reutil
 - **4 capas de estado**: `signal()` local → store por pantalla → `SessionStore` global (`@ngrx/signals`) → `httpResource` para catálogos. El `theme` NO entra al SessionStore (lo posee `LayoutService`).
 - **Dirección de dependencias**: `component → store → api-service`. Nunca al revés.
 - **Reglas**: derivado = `computed` (nunca estado duplicado) · un solo escritor por campo · efectos en features del store (no en componentes) · los stores no se importan entre sí · solo `TokenAuthService` toca storage.
-- **Auth en línea con devueltos (revisión 2026-09-22, equipo)**: el **refresh NO rota** (el backend devuelve solo access nuevo — como devueltos), pero sí se **trackea la expiración del refresh token** (`refreshTokenExpiresIn` en segundos → `isRefreshTokenExpired()` + short-circuit en `refreshAccess` — la "optimización" pedida). El **fingerprint es un string cualquiera** (UUID por login, `crypto.randomUUID()`, SOLO en el body de login — donde lo manda devueltos; nunca en refresh/otros requests). Rutas públicas: **string mágico `resource: 'Public'`** (como devueltos) + defensa extra "sin resource = pública".
+- **Auth en línea con devueltos (revisión 2026-09-22, equipo)**: el **refresh NO rota** (el backend devuelve solo access nuevo — como devueltos), pero sí se **trackea la expiración del refresh token** (`refreshTokenExpiresIn` en **MINUTOS** — backend confirmó 2026-09-22: el body es la fuente de verdad, NO el `exp` del JWT → `isRefreshTokenExpired()` + short-circuit en `refreshAccess` — la "optimización" pedida; conversión única en `core/utils/token-expiry.ts`). El **fingerprint es un string cualquiera** (UUID por login, `crypto.randomUUID()`, SOLO en el body de login — donde lo manda devueltos; nunca en refresh/otros requests). Rutas públicas: **string mágico `resource: 'Public'`** (como devueltos) + defensa extra "sin resource = pública".
 - **Store y IO (decisión 2026-09-22)**: los stores de **sesión** (SessionStore) son puros — escriben solo vía métodos sin IO y exponen queries reactivas; los **use-cases** (login, logout, refresh) orquestan servicios de infra y llaman a los métodos del store; la navegación jamás entra al store (no es estado). En cambio, los stores de **pantalla** (Fase 3, `withServerTable`) SÍ hacen sus fetches en `withMethods` porque el fetch es parte del ciclo de vida de ese estado. Criterio: no es "UI vs no UI", es quién posee el ciclo de vida del estado.
 - **Carpetas**: `core/` (interfaces, builders, services, guards, interceptors, helpers, store, constants, utils) · `modules/<feature>/{domain,application,infrastructure,presentation}` · `shared/` (components, pages, directives). Bootstrap en `src/app/` (`main.ts` es lo único en `src/`).
 
@@ -63,7 +63,7 @@ Stack fijado en 21, demos de Sakai eliminadas, `angular.json` saneado (builder `
 | 2 | `ConfigService` runtime (APP_INITIALIZER, `assets/config.{env}.json`, `HttpBackend` directo) | ✅ |
 | 3 | `GenericHttpService` tipado (async, contrato .NET) | ✅ |
 | 4 | Web Crypto + `SessionStorageService` + `TokenAuthService` (signals + refresh raw) | ✅ |
-| 5 | `AuthInterceptor` (Bearer, 401 **single-flight**, 403, 418, exclusiones `/api/auth/`) | ✅ |
+| 5 | `AuthInterceptor` (Bearer, 401 **single-flight**, 403, 418; exclusiones **endpoint-específicas**: login/refresh-token/logout van sin Bearer, `user/current` SÍ lo lleva — fix 5850544) | ✅ |
 | 6 | `SessionStore` (currentUser, permissions, configLoaded; `hasPermission`/`reset`) | ✅ |
 
 ### ⚠️ Fase 2 — Seguridad + layout (EN CURSO)
@@ -79,7 +79,7 @@ Stack fijado en 21, demos de Sakai eliminadas, `angular.json` saneado (builder `
 | 2.5 Módulo de seguridad (usuarios/roles/auditorías/configuración) + rutas con `data: { title, breadcrumb }` | 🔲 |
 | 2.6 (media) Persistencia de layout, overlay de carga, chips historial, inactivity | 🔲 |
 
-**Tests actuales: 87 esperados** — 56 previos (no corridos en batch hoy; estructuralmente no afectados) + 6 de 2.2 + 3 de 2.3 + 13 de 2.4 + 9 nuevos del realineamiento auth/refresh/fingerprint/'Public' (token-auth +4, guards +1, login.auth-flow), todos verificados por batch (`--include`).
+**Tests actuales: 88** (verificado 2026-09-22) — incluye +2 tests de regresión del interceptor (exclusiones endpoint-específicas) y +1 del contrato MINUTOS de lifetimes, sobre la base de 85 verde previa.
 
 ### ✅ Verificación Fase 2.2 — COMPLETA (2026-09-21, esta PC)
 
@@ -125,3 +125,4 @@ pnpm exec ng build
 - **El wrapper de PowerShell de este entorno** manglea salidas ricas en "N matches in N files": para ver errores reales redirigir a archivo y leer (`... > log.txt 2>&1`).
 - **Renames ya aplicados** (si buscas un nombre viejo): outputs `onXxx` → nombres semánticos (`searchParams`, `searchSubmitted`, `created`, `action`, `resetFilters`); selectors sin prefijo → `app-*` (`[appHasPermission]`, `[appToolbarSlot]`, `app-permissions-tree`); inputs `@Input('alias')` → sin alias (`hasPermissionResource`/`hasPermissionActions`).
 - **Regla de trabajo del equipo**: comunicar los cambios ANTES de aplicarlos y preguntar si la persona los hace manualmente. Con git, el diff es la narrativa.
+- **Exclusiones de auth: endpoint-específicas, NUNCA prefijo de controller** (lección runtime 2026-09-22): el prefijo `/api/auth/` excluyó también `user/current` (que SÍ es autenticado) y rompió el login con un 401 silencioso. Mismo tipo de trampa en unidades: `expiresIn`/`refreshTokenExpiresIn` son **MINUTOS** (confirmado por el backend); devueltos asumía segundos. El `exp` interno del JWT NO es la fuente de verdad del contrato del body. Ambos contratos quedaron clavados con tests de regresión.
