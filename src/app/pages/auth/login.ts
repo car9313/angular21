@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, NonNullableFormBuilder, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
@@ -47,7 +47,6 @@ import { LoginUseCase } from '../../modules/auth/application/login.use-case';
 export class Login {
     private readonly loginUseCase = inject(LoginUseCase);
     private readonly router = inject(Router);
-    private readonly route = inject(ActivatedRoute);
     private readonly fb = inject(NonNullableFormBuilder);
 
     readonly form = this.fb.group({
@@ -72,9 +71,9 @@ export class Login {
         try {
             await this.loginUseCase.execute(username, password);
 
-            // returnUrl survives the authGuard redirect; default to app root.
-            const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-            await this.router.navigateByUrl(returnUrl && returnUrl.startsWith('/') ? returnUrl : '/');
+            // No returnUrl tracking (team decision 2026-09-22, parity with
+            // the reference project): login always lands on the home page.
+            await this.router.navigateByUrl('/');
         } catch {
             this.errorMessage.set('Usuario o contraseña incorrectos. Intentá de nuevo.');
         } finally {

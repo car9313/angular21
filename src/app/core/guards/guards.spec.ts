@@ -44,9 +44,9 @@ describe('auth guards', () => {
         expect(restoreSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('authGuard redirects to login with returnUrl when logged out', async () => {
+    it('authGuard redirects to a clean /auth/login when logged out (no returnUrl, parity with the reference app)', async () => {
         const result = (await TestBed.runInInjectionContext(() => authGuard({} as never, { url: '/secure' } as never))) as unknown as URL;
-        expect(result.toString()).toBe('/auth/login?returnUrl=%2Fsecure');
+        expect(result.toString()).toBe('/auth/login');
     });
 
     it('authGuard waits for session restoration before deciding (F5 race)', async () => {

@@ -10,7 +10,7 @@ import { SessionReadyService } from './session-ready.service';
  * valid session; deciding before the boot restore completes would bounce an
  * authenticated user to the login (the reported blank/login bounce bug).
  */
-export const authGuard: CanActivateFn = async (_route, state) => {
+export const authGuard: CanActivateFn = async () => {
     const sessionReady = inject(SessionReadyService);
     const router = inject(Router);
 
@@ -20,5 +20,9 @@ export const authGuard: CanActivateFn = async (_route, state) => {
         return true;
     }
 
-    return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: state.url } });
+    // Plain login redirect, like the reference project: the returnUrl
+    // query param was dropped by team decision (2026-09-22) — after login
+    // the app always lands on the home page, and the URL stays clean
+    // (/auth/login, no ?returnUrl=%2F...).
+    return router.createUrlTree(['/auth/login']);
 };
