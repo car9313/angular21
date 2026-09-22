@@ -31,12 +31,18 @@ export class PageTitleService {
      * Reads routeConfig.data (own data only, never the accumulated
      * snapshot.data): otherwise the first group's inherited title would mask
      * the leaf's own title.
+     *
+     * Defensive navigation-chain access: this service is constructed inside
+     * the topbar DURING route activation. In that window the router state
+     * can expose children whose snapshot chain is not fully built — reading
+     * through it must resolve to '' and NEVER throw, because a throw here
+     * cancels the whole navigation (blank page, empty outlet).
      */
     private resolveTitle(route: ActivatedRoute): string {
         const child = route.children.find((c) => !c.outlet || c.outlet === 'primary');
 
         if (!child) {
-            return (route.snapshot.routeConfig?.data?.['title'] as string | undefined) ?? '';
+            return (route.snapshot?.routeConfig?.data?.['title'] as string | undefined) ?? '';
         }
 
         const deepest = this.resolveTitle(child);
@@ -44,6 +50,6 @@ export class PageTitleService {
             return deepest;
         }
 
-        return (child.snapshot.routeConfig?.data?.['title'] as string | undefined) ?? '';
+        return (child.snapshot?.routeConfig?.data?.['title'] as string | undefined) ?? '';
     }
 }

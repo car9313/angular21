@@ -16,12 +16,24 @@ export class BreadcrumbService {
     private readonly router = inject(Router);
 
     constructor() {
-        // 1) Inicializa inmediatamente desde el snapshot actual (cubrir F5)
-        this._breadcrumbs.set(this.buildBreadCrumb(this.router.routerState.root));
-
-        // 2) Actualiza en cada NavigationEnd
-        this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
+        // 1) Initialize immediately from the current snapshot (covers F5).
+        // Defensive: during route activation the tree can expose children
+        // whose snapshot is not built yet — a throw here (this service is
+        // born inside the layout) CANCELS the whole navigation (empty
+        // outlet, blank page). Never propagate.
+        try {
             this._breadcrumbs.set(this.buildBreadCrumb(this.router.routerState.root));
+        } catch {
+            this._breadcrumbs.set([]);
+        }
+
+        // 2) Update on every NavigationEnd (tree already stable).
+        this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => {
+            try {
+                this._breadcrumbs.set(this.buildBreadCrumb(this.router.routerState.root));
+            } catch {
+                this._breadcrumbs.set([]);
+            }
         });
     }
 
@@ -33,10 +45,16 @@ export class BreadcrumbService {
         }
 
         for (const child of children) {
-            // Ignora outlets que no son primary (ej: aux outlets)
+            // Ignore non-primary outlets and children whose snapshot chain is
+            // not built yet (route-activation window) — skip, never throw.
             if (child.outlet && child.outlet !== 'primary') continue;
 
-            const routeURL = child.snapshot.url.map((segment) => segment.path).join('/');
+            const snapshot = child.snapshot;
+            if (!snapshot) {
+                continue;
+            }
+
+            const routeURL = snapshot.url.map((segment) => segment.path).join('/');
             // concatena al url (si hay segment)
             const nextUrl = routeURL ? `${url}/${routeURL}` : url;
 
