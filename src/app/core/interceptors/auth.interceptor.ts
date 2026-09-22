@@ -8,15 +8,19 @@ import { TokenAuthService } from '../services/token-auth.service';
  * URLs that never carry the Authorization header and never trigger the
  * 401-refresh flow.
  *
- * Deliberately uses the `/api/auth/` PREFIX (not `includes('/login')`):
- * - `includes('/login')` would also match `/api/v1/login-attempts` or
- *   `/users/login-history` — false positives.
- * - `/api/auth/` covers login + refresh-token + logout of the auth controller
- *   with one exact prefix.
- * The login request must NEVER hit the 401-refresh logic: a stale token on a
- * login attempt would otherwise trigger a refresh round-trip.
+ * Endpoint-specific, NOT a blanket `/api/auth/` prefix: the auth controller
+ * also serves `user/current`, which REQUIRES the Bearer header. The blanket
+ * prefix silently stripped that header and made login fail with a 401 on
+ * the identity call (caught in runtime testing 2026-09-22).
+ *
+ * The login request must NEVER hit the 401-refresh logic: a stale token on
+ * a login attempt would otherwise trigger a refresh round-trip. A bare
+ * `includes('/login')` is still avoided on purpose (`/login-attempts`,
+ * `/users/login-history` false positives). `refresh-token` and `logout` go
+ * through the raw HttpBackend (interceptor-bypassed); they stay listed as
+ * defense-in-depth in case they ever move to HttpClient.
  */
-const NO_AUTH_URLS = ['/assets/config.', '/api/auth/'];
+const NO_AUTH_URLS = ['/assets/config.', '/api/auth/login', '/api/auth/refresh-token', '/api/auth/logout'];
 
 /**
  * Optional endpoints where a 403 must NOT redirect to the access-denied page

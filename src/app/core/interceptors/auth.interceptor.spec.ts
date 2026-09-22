@@ -75,6 +75,30 @@ describe('authInterceptor', () => {
         expect(tokenAuth.refreshAccess).not.toHaveBeenCalled();
     });
 
+    it('identity call user/current carries the Bearer token (regression: was stripped by the /api/auth/ prefix)', async () => {
+        tokenAuth.accessToken = vi.fn().mockReturnValue('tok-123') as typeof tokenAuth.accessToken;
+        const promise = lastValueFrom(client.get('http://api.test/api/auth/user/current'));
+
+        const req = http.expectOne('http://api.test/api/auth/user/current');
+        expect(req.request.headers.get('Authorization')).toBe('Bearer tok-123');
+        req.flush({ id: 1, username: 'admin' });
+
+        await expect(promise).resolves.toEqual({ id: 1, username: 'admin' });
+    });
+
+    it('public auth endpoints (login, refresh-token, logout) carry no header and skip the refresh flow', async () => {
+        tokenAuth.accessToken = vi.fn().mockReturnValue('tok') as typeof tokenAuth.accessToken;
+
+        for (const path of ['/api/auth/login', '/api/auth/refresh-token', '/api/auth/logout']) {
+            const promise = lastValueFrom(client.post(`http://api.test${path}`, {})).catch((e) => e);
+
+            http.expectOne(`http://api.test${path}`).flush({});
+            await promise;
+        }
+
+        expect(tokenAuth.refreshAccess).not.toHaveBeenCalled();
+    });
+
     it('clears the session and redirects to login on 418', async () => {
         const promise = lastValueFrom(client.get('http://api.test/api/v1/people')).catch((e) => e as HttpErrorResponse);
 
