@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { provideZonelessChangeDetection, Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import { appRoutes } from '../../app.routes';
 import { SessionStore } from '../store/session.store';
 
@@ -27,7 +28,8 @@ describe('post-login navigation (real routes)', () => {
     beforeEach(() => {
         TestBed.configureTestingModule({
             imports: [TestHost],
-            providers: [provideRouter(appRoutes), provideZonelessChangeDetection()]
+            // MessageService backs the layout's global <p-toast> host.
+            providers: [provideRouter(appRoutes), provideZonelessChangeDetection(), MessageService]
         });
 
         router = TestBed.inject(Router);

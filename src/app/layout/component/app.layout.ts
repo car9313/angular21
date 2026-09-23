@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { ToastModule } from 'primeng/toast';
 import { AppTopbar } from './app.topbar';
 import { AppSidebar } from './app.sidebar';
 import { AppFooter } from './app.footer';
@@ -10,7 +11,7 @@ import { LayoutService } from '@/app/layout/service/layout.service';
 @Component({
     selector: 'app-layout',
     standalone: true,
-    imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter, BreadcrumbComponent],
+    imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter, BreadcrumbComponent, ToastModule],
     changeDetection: ChangeDetectionStrategy.Eager,
     template: `<div class="layout-wrapper" [ngClass]="containerClass()">
         <app-topbar></app-topbar>
@@ -23,6 +24,8 @@ import { LayoutService } from '@/app/layout/service/layout.service';
             <app-footer></app-footer>
         </div>
         <div class="layout-mask"></div>
+        <!-- Global toast host: every screen shares the NotificationService. -->
+        <p-toast position="top-right" [life]="3000"></p-toast>
     </div> `
 })
 export class AppLayout {
