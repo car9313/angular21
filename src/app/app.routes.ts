@@ -15,6 +15,11 @@ export const appRoutes: Routes = [
                 path: 'panel-principal',
                 loadComponent: () => import('./pages/panel-principal').then((m) => m.PanelPrincipal),
                 data: { title: 'Inicio', breadcrumb: 'Panel principal' }
+            },
+            {
+                path: 'seguridad',
+                loadChildren: () => import('./modules/security/roles/roles.routes').then((m) => m.default),
+                data: { title: 'Seguridad' }
             }
         ]
     },
