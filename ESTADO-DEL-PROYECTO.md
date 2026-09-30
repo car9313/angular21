@@ -19,6 +19,7 @@ Construir una aplicación **Angular premium, escalable y mantenible** que reutil
 | ⚠️ Por qué NO Angular 22 | PrimeNG 22 embebió validación de licencia PrimeUI (banner "Invalid PrimeUI License"); sin presupuesto de licencia → nos quedamos fijados en 21. NO actualizar |
 | Estado | `@ngrx/signals` oficial + **features propias** (rechazamos NgRx Traits: el equipo quiere ser dueño del código) |
 | HTTP | `@angular/build` (builders esbuild/Vite, sin webpack) + contrato .NET en `core/` |
+| **HTTP contract (decisión 2026-09-24)** | `GenericHttpService` devuelve **`Observable`** (NO Promise) — decisión de equipo para que `rxMethod` + `switchMap` cancelen requests en flight en stores de pantalla. Los specs levantan el valor con `firstValueFrom(...)` y esperan `expect(() => service.getAll(...)).toThrow()` cuando no hay config (el throw es SÍNCRONO: `url()` se evalúa al construir el Observable). Repositorios de features (`RoleRepository`) propagan `Observable` naturalmente |
 | Testing | Vitest 4 (`ng test --watch=false`), JUnit del runner `@angular/build:unit-test` |
 | Seguridad | Web Crypto AES-GCM (nada de crypto-js), tokens cifrados en storage, interceptor con refresh single-flight |
 | Utilidades | `date-fns`; `crypto.randomUUID()`; sin Lodash |
@@ -70,17 +71,17 @@ Stack fijado en 21, demos de Sakai eliminadas, `angular.json` saneado (builder `
 ### ⚠️ Fase 2 — Seguridad + layout (EN CURSO)
 | Sub | Estado |
 |---|---|
-| 2.0 Menú español + RBAC reactivo (`core/constants/{menu,actions,resources}`, `MenuPermissionService` sobre SessionStore) | ✅ |
+| 2.0 Menú español + RBAC reactivo (`core/constants/{menu,actions,resources}`, `MenuPermissionService` sobre SessionStore) | ✅ (+ fix 2026-09-24: `path` en cada item de `MENU_ITEMS` — sin `path` el submenú "Seguridad" nunca se despliega; `app.menuitem` solo expande grupos con `isActive()`, que depende de `path`) |
 | 2.1 Breadcrumbs + PageTitle (componentes + servicio + wiring en `app.layout`/`app.topbar` + specs) | ✅ |
 | 2.1+ Pase de tipado del lote `shared/` copiado de devueltos (async-select[–infinite], chip-navigation, file-upload, filter-*, generic-chart, stat-card, search[-bar], spinner, table-skeleton, info-summary, has-permission, toolbar, permissions-tree, toolbar-slot, breadcrumbs) — **lint 0, 56 tests verdes** | ✅ |
 | 2.1+ Mocks demo de devueltos **ELIMINADOS** (`shared/mocks/`) — no se portan | ✅ |
 | 2.2 User dropdown + logout en topbar (`LogoutService`: revocación server best-effort `POST /api/auth/logout` `{refreshToken}` vía raw `HttpBackend` + `TokenAuthService.clear()` + `SessionStore.reset()` + redirect `/auth/login`; `UserMenu` con `p-menu` popup alimentado por `SessionStore`; demo Calendar/Messages/Profile y botón ellipsis eliminados) | ✅ verificado 2026-09-21 (lint 0 · 6 specs nuevos verdes · build OK 4.9s) |
 | 2.3 Traducción ES de PrimeNG (`translation`) | ✅ verificado 2026-09-22 (`core/constants/primeng-es-translation.ts` tipado con `Translation` de `primeng/api` — NO `primeng/config`, que no re-exporta; wired en `providePrimeNG` de `app.config.ts` + spec de contrato ×3; lint 0 · 9/9 specs del batch verdes · build OK) |
 | 2.4 Login real + guards (auth/guest/permission) + directiva `*appHasPermission` sobre SessionStore | ✅ implementado y verificado 2026-09-22 — login real (`POST /api/auth/login` + `GET /api/auth/user/current`, fingerprint `crypto.randomUUID`, use-case `LoginUseCase` hidrata `SessionStore` con permisos aplanados), guards `auth`/`guest`/`permission` (público sin `data.resource`, default `Read`, redirect `/auth/access`), login page ES con form reactivo + `p-message` de error + `returnUrl`, wiring en `auth.routes` con `guestGuard`; duplicados demo de `shared/pages` (access/error/empty) ELIMINADOS. Gates: lint 0 · 13/13 specs nuevos · build OK. ⚠️ Pendiente acoplado: verificación runtime de la directiva `*appHasPermission` reescrita — depende de que se aplique manualmente la unificación RBAC (§5.1) |
-| 2.5 Módulo de seguridad (usuarios/roles/auditorías/configuración) + rutas con `data: { title, breadcrumb }` | 🔲 |
+| 2.5 Módulo de seguridad (usuarios/roles/auditorías/configuración) + rutas con `data: { title, breadcrumb }` | 🔲 → **avance 2026-09-24**: pantalla de roles con `RoleListStore` (composición `withQuery`/`withListStatus`/`withFilters`/`withFiltersPersistence`/`withModal`/`withSelection`), `RoleTableComponent` reutilizable (inputs/outputs), `RoleFiltersComponent`, `GenericHttpService → Observable`. Pendiente: CRUD completo, modales, permisos por rol |
 | 2.6 (media) Persistencia de layout, overlay de carga, chips historial, inactivity | 🔲 |
 
-**Tests actuales: 88** (verificado 2026-09-22) — incluye +2 tests de regresión del interceptor (exclusiones endpoint-específicas) y +1 del contrato MINUTOS de lifetimes, sobre la base de 85 verde previa.
+**Tests actuales: 94** (verificado 2026-09-24) — los cambios manuales del módulo roles dejaron la suite en verde tras alinear los specs al contrato Observable + RESOURCES del backend real.
 
 ### ✅ Verificación Fase 2.2 — COMPLETA (2026-09-21, esta PC)
 
@@ -94,6 +95,21 @@ Stack fijado en 21, demos de Sakai eliminadas, `angular.json` saneado (builder `
 
 ## 5. Lo que falta (orden recomendado)
 
+0. **Limpieza lote manual 2026-09-24 (lista de cambios revisados por orquestador)** — ✅ HECHO:
+   - `styles.scss`: eliminados outlines debug `lime/red/blue !important` y `font-size: 1.2rem` de body (vuelto a 1rem).
+   - `role-repository.ts`: eliminado `tap(console.log)` de `list()`.
+   - `app-user-menu.ts` (nuevo, sin punto) **ELIMINADO** — colisionaba el selector `app-user-menu` con `app.user-menu.ts` (el usado por el topbar).
+   - `session.store.ts`: eliminado bloque de "notas de trabajo" en español; la advertencia del cache vive ahora como doc en `TableActionMenuService`.
+   - `resources.ts`: comillas uniformes, sin línea vacía extra.
+   - Specs alineados al contrato: `menu-permission.service.spec` usa `RESOURCES` reales (`'User'`, `'Role'`), `http-params-builder.spec` completa `QueryParams` (filter/sort obligatorios), `generic-http.service.spec` reescrito a Observables, `app.user-menu.spec` busca `'Cerrar sesión'`.
+   - Lint: `NotificationService` con `inject()` (no constructor), eliminados `any`, output `selectRow` (no nativo `select`), `withHooks.onInit` sin `store` sin usar.
+
+0b. **Refactor roles 2026-09-24 (optimización/escalabilidad, revisado por orquestador)** — ✅ HECHO:
+   - `RoleListComponent` (`app-role-list`, contenedor huérfano duplicado) **ELIMINADO** — la pantalla real es `RolesPage`.
+   - `RoleListStore.load` ahora es `rxMethod<QueryParams>`: la query entra POR INPUT (los coordinadores pasan `store.query()`); ya no se lee el estado dentro del `switchMap`. Eliminado el computed muerto `totalRecords` (placeholder que nunca se sobrescribía) y el `withHooks.onInit` vacío.
+   - `PermissionService` movido de `core/interfaces/` → `core/services/` (regla de carpetas: servicios en `core/services/`). `column-config.ts` actualizado.
+   - ⚠️ Pendiente sin tocar: `has-permission.directive.ts` y `toolbar.component.ts` siguen con imports fantasma (`modules/auth/infrastructure/storage/token-auth.service` y `permission.service` desde `core/services/` — el real existe pero `TokenAuthService` NO expone `userRoles`) — son scope de la unificación RBAC (§5.1), nadie los importa hoy.
+ 
 1. **Unificar RBAC sobre `SessionStore`** (decisión TOMADA con el equipo — **PENDIENTE DE APLICAR MANUALMENTE**):
    - Realidad verificada en disco (2026-09-21): **NO hay dos `TokenAuthService`** — la "copia de devueltos" (`modules/auth/...`) y `PermissionService` NUNCA existieron. El problema real son **3 archivos huérfanos con imports fantasma** (pasan lint/build solo porque `tsconfig.app.json` arranca en `main.ts` y nadie los importa): `has-permission.directive.ts` y `toolbar.component.ts` → importan `PermissionService` + `modules/.../token-auth.service`; `chip-navigation-history/quick-access.service.ts` → importa `modules/auth/services/auth.service`.
    - Decisión (opción A): **no se recrea `PermissionService`**. Directiva y toolbar se reescriben contra `SessionStore.hasPermission` (signal inputs + `computed` + `effect`, contexto `{ ok }` — resuelve también el ítem 3). Bypass `'Public'` NO se porta (no está en `RESOURCES`; el guard de 2.4 tratará ruta sin `data.resource` como pública). `quick-access` se reescribe en 2.6 (chips). La spec completa para aplicar quedó entregada en la conversación (directiva reescrita + spec + cambios de toolbar + commits sugeridos).
