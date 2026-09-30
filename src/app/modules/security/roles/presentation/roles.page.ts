@@ -55,7 +55,6 @@ import { RESOURCES } from '@/app/core/constants/resources';
                 [currentPage]="store.currentPage()"
                 [pageSize]="store.pageSize()"
                 (selectRow)="store.select($event.id)"
-                (permissions)="store.openPermissions($event)"
                 (pageChange)="onPageChange($event)"
             />
 
@@ -82,6 +81,13 @@ export class RolesPage implements OnInit {
             permission: { resource: RESOURCES.Roles, action: ACTIONS.Update },
             visible: (row) => !row.isUnEditable,
             command: (row) => this.store.openEdit(row)
+        },
+        {
+            label: 'Permisos',
+            icon: 'pi pi-lock',
+            permission: { resource: RESOURCES.Roles, action: ACTIONS.Update },
+            visible: (row) => !row.isUnEditable,
+            command: (row) => this.store.openPermissions(row)
         },
         {
             label: 'Eliminar',

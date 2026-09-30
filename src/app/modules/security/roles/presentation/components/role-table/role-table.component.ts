@@ -48,7 +48,6 @@ export class RoleTableComponent {
     readonly edit = output<Role>();
     readonly view = output<Role>();
     readonly remove = output<Role>();
-    readonly permissions = output<Role>();
     readonly pageChange = output<PageChangeEvent>();
 
     // ─── Dependencias de presentación (NO del store) ────────────────────
