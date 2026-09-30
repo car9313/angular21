@@ -1,13 +1,19 @@
 // notification.service.ts
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { MessageService } from 'primeng/api';
 
 type ToastSeverity = 'success' | 'info' | 'warn' | 'error';
 
+interface ProblemDetailsLike {
+    message?: string;
+    detail?: string;
+    errors?: Record<string, string[] | string>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-    constructor(private readonly messageService: MessageService) {}
+    private readonly messageService = inject(MessageService);
 
     show(severity: ToastSeverity, message: string, life = 3000): void {
         this.messageService.add({
@@ -18,7 +24,7 @@ export class NotificationService {
         });
     }
 
-    verification(res: HttpErrorResponse | { status: number; error?: any }): void {
+    verification(res: HttpErrorResponse | { status: number; error?: unknown }): void {
         const status = res?.status ?? 0;
         if (status >= 200 && status < 300) {
             this.show('success', this.getSuccessMessage(status));
@@ -54,12 +60,29 @@ export class NotificationService {
         }
     }
 
-    private getErrorMessage(error: any): string {
+    private isProblemDetails(value: unknown): value is ProblemDetailsLike {
+        return typeof value === 'object' && value !== null;
+    }
+
+    private getErrorMessage(error: unknown): string {
         if (!error) return 'Error en el envío de datos.';
         if (typeof error === 'string') return error;
-        if (error?.message) return error.message;
-        if (error?.errors) return Object.values(error.errors).flat().join(', ');
-        if (error?.detail) return error.detail;
+
+        if (this.isProblemDetails(error)) {
+            if (typeof error.message === 'string' && error.message.trim()) {
+                return error.message;
+            }
+            if (error.errors) {
+                const values = Object.values(error.errors)
+                    .flat()
+                    .filter((v): v is string => typeof v === 'string');
+                if (values.length) return values.join(', ');
+            }
+            if (typeof error.detail === 'string' && error.detail.trim()) {
+                return error.detail;
+            }
+        }
+
         return 'Error en el envío de datos.';
     }
 
