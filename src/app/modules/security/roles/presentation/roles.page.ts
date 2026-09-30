@@ -3,6 +3,7 @@ import { ConfirmationService } from 'primeng/api';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { PageChangeEvent, RoleTableComponent } from '@/app/modules/security/roles/presentation/components/role-table/role-table.component';
 import { RoleNameDialogComponent } from '@/app/modules/security/roles/presentation/components/role-name-dialog/role-name-dialog.component';
+import { RolePermissionsDialogComponent } from '@/app/modules/security/roles/presentation/components/role-permissions-dialog/role-permissions-dialog.component';
 import { RoleListStore } from '@/app/modules/security/roles/presentation/stores/role-list.store';
 import { ColumnConfig } from '@/app/core/interfaces/column-config';
 import { Role } from '@/app/modules/security/roles/domain/role';
@@ -16,7 +17,7 @@ import { RESOURCES } from '@/app/core/constants/resources';
 @Component({
     selector: 'app-roles',
     standalone: true,
-    imports: [RoleTableComponent, RoleNameDialogComponent, ToolbarComponent, SearchComponent, ConfirmDialog],
+    imports: [RoleTableComponent, RoleNameDialogComponent, RolePermissionsDialogComponent, ToolbarComponent, SearchComponent, ConfirmDialog],
     providers: [RoleListStore, ConfirmationService],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
@@ -26,6 +27,11 @@ import { RESOURCES } from '@/app/core/constants/resources';
         @if (store.modalMode() === 'edit') {
             @if (store.selectedItem(); as role) {
                 <app-role-name-dialog [role]="role" (saved)="onDialogSaved()" (cancelled)="store.closeModalAndClearSelection()" />
+            }
+        }
+        @if (store.modalMode() === 'permissions') {
+            @if (store.selectedItem(); as role) {
+                <app-role-permissions-dialog [role]="role" (saved)="onDialogSaved()" (cancelled)="store.closeModalAndClearSelection()" />
             }
         }
 
