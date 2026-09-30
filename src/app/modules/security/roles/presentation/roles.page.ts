@@ -1,67 +1,124 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { TableLazyLoadEvent } from 'primeng/table';
-import { BaseTableComponent } from '../../../../shared/components/base-table/base-table.component';
-import { QueryParams } from '../../../../core/interfaces/query-params';
-import { RoleListStore } from './stores/role-list.store';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
+import { ConfirmationService } from 'primeng/api';
+import { ConfirmDialog } from 'primeng/confirmdialog';
+import { PageChangeEvent, RoleTableComponent } from '@/app/modules/security/roles/presentation/components/role-table/role-table.component';
+import { RoleNameDialogComponent } from '@/app/modules/security/roles/presentation/components/role-name-dialog/role-name-dialog.component';
+import { RoleListStore } from '@/app/modules/security/roles/presentation/stores/role-list.store';
+import { ColumnConfig } from '@/app/core/interfaces/column-config';
+import { Role } from '@/app/modules/security/roles/domain/role';
+import { TableAction } from '@/app/core/interfaces/table-action';
+import { ToolbarComponent } from '@/app/shared/components/generictToolbar/toolbar.component';
+import { SearchComponent } from '@/app/shared/components/search/search.component';
+import { NotificationService } from '@/app/core/services/notification-services';
+import { ACTIONS } from '@/app/core/constants/actions';
+import { RESOURCES } from '@/app/core/constants/resources';
 
-/**
- * Roles list screen (Fase 2.5a): lazy paginated table backed by RoleListStore.
- * The store is provided HERE (not root) so its state lives and dies with this
- * route — no cross-screen leakage.
- */
 @Component({
     selector: 'app-roles',
     standalone: true,
-    imports: [BaseTableComponent],
-    providers: [RoleListStore],
+    imports: [RoleTableComponent, RoleNameDialogComponent, ToolbarComponent, SearchComponent, ConfirmDialog],
+    providers: [RoleListStore, ConfirmationService],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <app-base-table
-            [items]="store.entities()"
-            [loading]="store.loading()"
-            [totalRecords]="store.total()"
-            [paginated]="true"
-            [stripedRows]="true"
-            [dataKey]="'id'"
-            [showCurrentPageReport]="true"
-            (lazyLoad)="onLazyLoad($event)"
-            emptyTitle="No hay roles"
-            emptyDescription="Aún no existen roles registrados."
-        >
-            <ng-template #header>
-                <div class="flex items-center gap-2">
-                    <span class="font-semibold">Roles</span>
-                </div>
-            </ng-template>
+        @if (store.modalMode() === 'add') {
+            <app-role-name-dialog (saved)="onDialogSaved()" (cancelled)="store.closeModalAndClearSelection()" />
+        }
+        @if (store.modalMode() === 'edit') {
+            @if (store.selectedItem(); as role) {
+                <app-role-name-dialog [role]="role" (saved)="onDialogSaved()" (cancelled)="store.closeModalAndClearSelection()" />
+            }
+        }
 
-            <ng-template #body let-item>
-                <td>{{ item.name }}</td>
-                <td>
-                    @if (item.isUnEditable) {
-                        <span class="inline-flex align-items-center justify-content-center bg-primary text-primary-contrast border-round px-2 py-1 text-sm">Protegido</span>
-                    } @else {
-                        <span class="text-muted-color">Editable</span>
-                    }
-                </td>
-            </ng-template>
-        </app-base-table>
+        <div class="card flex flex-col gap-8">
+            <!--            <app-role-filters />-->
+
+            <app-toolbar [resource]="RESOURCES.Roles" [actions]="[ACTIONS.Create]" (created)="store.openAdd()" [config]="{ visible: true }">
+                <div toolbar-end>
+                    <app-search [searchText]="store.searchText()" (searchSubmitted)="store.setSearchAndReload($event)"></app-search>
+                </div>
+            </app-toolbar>
+
+            <app-role-table
+                [items]="items()"
+                [columns]="columns"
+                [rowActions]="rowActions()"
+                [selectedId]="store.selectedId()"
+                [loading]="store.loading()"
+                [error]="store.error()"
+                [totalRecords]="store.meta().totalCount"
+                [currentPage]="store.currentPage()"
+                [pageSize]="store.pageSize()"
+                (selectRow)="store.select($event.id)"
+                (permissions)="store.openPermissions($event)"
+                (pageChange)="onPageChange($event)"
+            />
+
+            <p-confirm-dialog [style]="{ width: '450px' }" />
+        </div>
     `
 })
-export class RolesPage {
+export class RolesPage implements OnInit {
     readonly store = inject(RoleListStore);
+    private readonly confirm = inject(ConfirmationService);
+    private readonly notify = inject(NotificationService);
 
-    readonly items = this.store.entities;
-    readonly loading = this.store.loading;
-    readonly total = this.store.total;
+    readonly columns: ColumnConfig<Role>[] = [
+        { field: 'id', header: 'ID', sortable: false, className: 'text-center' },
+        { field: 'name', header: 'Nombre', sortable: false }
+    ];
 
-    onLazyLoad(event: TableLazyLoadEvent): void {
-        const query: QueryParams = {
-            search: { SearchText: typeof event.globalFilter === 'string' ? event.globalFilter : '', Strict: false },
-            filter: [],
-            sort: [],
-            pag: { Page: (event.first ?? 0) / (event.rows ?? 10) + 1, PageSize: event.rows ?? 10 }
-        };
+    readonly items = computed(() => this.store.entities().filter((role) => !role.isUnEditable));
 
-        this.store.load(query);
+    readonly rowActions = computed<TableAction<Role>[]>(() => [
+        {
+            label: 'Editar',
+            icon: 'pi pi-pencil',
+            permission: { resource: RESOURCES.Roles, action: ACTIONS.Update },
+            visible: (row) => !row.isUnEditable,
+            command: (row) => this.store.openEdit(row)
+        },
+        {
+            label: 'Eliminar',
+            icon: 'pi pi-trash',
+            permission: { resource: RESOURCES.Roles, action: ACTIONS.Delete },
+            visible: (row) => !row.isUnEditable && !row.isUnDeletable,
+            command: (row) => this.onDelete(row)
+        }
+    ]);
+
+    ngOnInit(): void {
+        this.store.load(this.store.query());
     }
+
+    onPageChange({ page, pageSize }: PageChangeEvent): void {
+        if (pageSize !== this.store.pageSize()) {
+            this.store.setPageSizeAndReload(pageSize);
+        } else {
+            this.store.setPageAndReload(page);
+        }
+    }
+
+    /** El store ya recargó; solo hay que cerrar el diálogo. */
+    onDialogSaved(): void {
+        this.store.closeModalAndClearSelection();
+    }
+
+    onDelete(role: Role): void {
+        this.confirm.confirm({
+            message: `¿Está seguro de eliminar el rol "${role.name}"?`,
+            header: 'Confirmar eliminación',
+            icon: 'pi pi-exclamation-triangle',
+            acceptButtonProps: { label: 'Eliminar', severity: 'danger' },
+            rejectButtonProps: { label: 'Cancelar', severity: 'secondary', text: true },
+            accept: () => {
+                this.store.deleteAndReload(role.id).subscribe({
+                    next: () => this.notify.show('success', 'Rol eliminado correctamente.'),
+                    error: (error: unknown) => this.notify.handleGenericError(error)
+                });
+            }
+        });
+    }
+
+    protected readonly ACTIONS = ACTIONS;
+    protected readonly RESOURCES = RESOURCES;
 }

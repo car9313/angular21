@@ -1,0 +1,116 @@
+<p-table
+    [value]="items()"
+    [first]="first()"
+    [rows]="pageSize()"
+    [totalRecords]="totalRecords()"
+    [columns]="columns()"
+    [loading]="loading()"
+    [lazy]="true"
+    [paginator]="true"
+    [rowHover]="true"
+    [showCurrentPageReport]="true"
+    [rowsPerPageOptions]="rowsPerPageOptions()"
+    [tableStyle]="{ 'min-width': '100%' }"
+    currentPageReportTemplate="Mostrando del {first} al {last} de {totalRecords} roles"
+    selectionMode="single"
+    [selection]="selectedItem()"
+    dataKey="id"
+    (onLazyLoad)="onLazyLoad($event)"
+    (onRowSelect)="onRowSelect($event.data)"
+>
+    <!-- ─── Header ──────────────────────────────────────────────── -->
+    <ng-template #header>
+        <tr>
+            @for (col of columns(); track col.field) {
+                <th
+                    [pSortableColumn]="col.sortable ? col.field : undefined"
+                    [ngClass]="col.className"
+                >
+                    {{ col.header }}
+                    @if (col.sortable) {
+                        <p-sortIcon [field]="col.field" />
+                    }
+                </th>
+            }
+            @if (hasActionColumn()) {
+                <th style="min-width: 10%">Acciones</th>
+            }
+        </tr>
+    </ng-template>
+
+    <!-- ─── Body ────────────────────────────────────────────────── -->
+    <ng-template #body let-role>
+        <tr [pSelectableRow]="role">
+            @for (col of columns(); track col.field) {
+                <td [ngClass]="col.className">
+                    @if (col.cellTemplate) {
+                        <span [innerHTML]="col.cellTemplate(role)"></span>
+                    } @else {
+                        {{ role[col.field] }}
+                    }
+                </td>
+            }
+
+            @if (menuFor(role).length > 0) {
+                <td>
+                    <p-menu
+                        #menu
+                        [model]="menuFor(role)"
+                        [popup]="true"
+                        appendTo="body"
+                        (onShow)="onMenuShow(role)"
+                        (onHide)="onMenuHide(role)"
+                    />
+
+                    <p-button
+                        [rounded]="true"
+                        [outlined]="true"
+                        pTooltip="Listado de Acciones"
+                        tooltipPosition="top"
+                        [class.active]="isMenuOpen(role)"
+                        (click)="menu.toggle($event)"
+                    >
+                        <i class="pi pi-ellipsis-v"></i>
+                    </p-button>
+                </td>
+            }
+        </tr>
+    </ng-template>
+
+    <!-- ─── Loading skeleton ───────────────────────────────────── -->
+    <ng-template #loadingbody>
+        @for (row of skeletonRows; track row) {
+            <tr>
+                @for (col of columns(); track col.field) {
+                    <td><p-skeleton [style]="{ height: '20px' }" /></td>
+                }
+                @if (hasActionColumn()) {
+                    <td><p-skeleton [style]="{ height: '20px' }" /></td>
+                }
+            </tr>
+        }
+    </ng-template>
+
+    <!-- ─── Empty / error state ─────────────────────────────────── -->
+    <ng-template #emptymessage>
+        <tr>
+            <td
+                [attr.colspan]="columns().length + (hasActionColumn() ? 1 : 0)"
+                class="empty-message"
+            >
+                @if (error()) {
+                    <app-empty-state
+                        type="error"
+                        title="Error de carga de datos"
+                        description="No se pudieron cargar los elementos. Por favor, intente nuevamente."
+                    />
+                } @else {
+                    <app-empty-state
+                        title="No hay elementos disponibles"
+                        description="La lista de elementos está vacía. Agrega nuevos elementos o recarga los datos."
+                    />
+                }
+            </td>
+        </tr>
+    </ng-template>
+</p-table>

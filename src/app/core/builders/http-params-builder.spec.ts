@@ -94,6 +94,8 @@ describe('HttpParamsBuilder', () => {
     it('builds the full HttpParams from a complete QueryParams via the static helper', () => {
         const query: QueryParams = {
             search: { SearchText: 'ana', Strict: false },
+            filter: [],
+            sort: [],
             pag: { Page: 1, PageSize: 10 }
         };
 

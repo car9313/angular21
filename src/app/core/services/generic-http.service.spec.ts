@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { firstValueFrom } from 'rxjs';
 import { GenericHttpService } from './generic-http.service';
 import { ConfigService } from './config.service';
 import { defaultQuery, QueryParams } from '../interfaces/query-params';
@@ -30,8 +31,10 @@ describe('GenericHttpService', () => {
         await loadPromise;
     }
 
-    it('rejects when config was not loaded yet', async () => {
-        await expect(service.getAll('/api/v1/people', defaultQuery())).rejects.toThrowError(/not loaded/);
+    it('throws synchronously when config was not loaded yet', () => {
+        // url() is evaluated at Observable construction time, so the error
+        // is synchronous — unlike the old Promise contract.
+        expect(() => service.getAll('/api/v1/people', defaultQuery())).toThrowError(/not loaded/);
     });
 
     it('getAll maps QueryParams into the .NET contract and returns the page', async () => {
@@ -44,7 +47,9 @@ describe('GenericHttpService', () => {
             pag: { Page: 2, PageSize: 25 }
         };
 
-        const promise = service.getAll<{ id: number }>('/api/v1/people', query);
+        // firstValueFrom subscribes immediately: only then does the lazy
+        // Observable actually fire the HTTP request.
+        const result = firstValueFrom(service.getAll<{ id: number }>('/api/v1/people', query));
         const req = http.expectOne((r) => r.url === 'http://api.test/api/v1/people');
 
         expect(req.request.method).toBe('GET');
@@ -57,61 +62,61 @@ describe('GenericHttpService', () => {
         const response = { objects: [{ id: 1 }, { id: 2 }], meta: { totalCount: 2, totalPage: 1, currentPage: 2, nextPage: null, prevPage: 1 } };
         req.flush(response);
 
-        await expect(promise).resolves.toEqual(response);
+        await expect(result).resolves.toEqual(response);
     });
 
     it('getArray fetches plain catalogue arrays', async () => {
         await loadConfig();
 
-        const promise = service.getArray<string>('/api/v1/countries');
+        const result = firstValueFrom(service.getArray<string>('/api/v1/countries'));
         http.expectOne('http://api.test/api/v1/countries').flush(['AR', 'UY']);
 
-        await expect(promise).resolves.toEqual(['AR', 'UY']);
+        await expect(result).resolves.toEqual(['AR', 'UY']);
     });
 
     it('getById GETs the full suffix path', async () => {
         await loadConfig();
 
-        const promise = service.getById<{ id: number }>('/api/v1/people/42');
+        const result = firstValueFrom(service.getById<{ id: number }>('/api/v1/people/42'));
         http.expectOne('http://api.test/api/v1/people/42').flush({ id: 42 });
 
-        await expect(promise).resolves.toEqual({ id: 42 });
+        await expect(result).resolves.toEqual({ id: 42 });
     });
 
     it('create POSTs the body and returns the server result', async () => {
         await loadConfig();
 
-        const promise = service.create<{ id: number }>('/api/v1/people', { name: 'Ana' });
+        const result = firstValueFrom(service.create<{ id: number }>('/api/v1/people', { name: 'Ana' }));
         const req = http.expectOne('http://api.test/api/v1/people');
 
         expect(req.request.method).toBe('POST');
         expect(req.request.body).toEqual({ name: 'Ana' });
         req.flush({ id: 7 });
 
-        await expect(promise).resolves.toEqual({ id: 7 });
+        await expect(result).resolves.toEqual({ id: 7 });
     });
 
     it('update PUTs the body', async () => {
         await loadConfig();
 
-        const promise = service.update<{ ok: boolean }>('/api/v1/people/7', { name: 'Ana B' });
+        const result = firstValueFrom(service.update<{ ok: boolean }>('/api/v1/people/7', { name: 'Ana B' }));
         const req = http.expectOne('http://api.test/api/v1/people/7');
 
         expect(req.request.method).toBe('PUT');
         req.flush({ ok: true });
 
-        await expect(promise).resolves.toEqual({ ok: true });
+        await expect(result).resolves.toEqual({ ok: true });
     });
 
     it('delete DELETEs the resource', async () => {
         await loadConfig();
 
-        const promise = service.delete('/api/v1/people/7');
+        const result = firstValueFrom(service.delete('/api/v1/people/7'));
         const req = http.expectOne('http://api.test/api/v1/people/7');
 
         expect(req.request.method).toBe('DELETE');
         req.flush(null);
 
-        await promise;
+        await result;
     });
 });

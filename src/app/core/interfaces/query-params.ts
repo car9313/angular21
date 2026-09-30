@@ -9,8 +9,8 @@
  */
 export interface QueryParams {
     search: Search;
-    filter?: Filter[];
-    sort?: Sort[];
+    filter: Filter[];
+    sort: Sort[];
     pag: Pag;
 }
 
