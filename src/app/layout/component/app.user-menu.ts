@@ -1,10 +1,10 @@
+// src/app/layout/app.user-menu.ts
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
-import { MenuModule } from 'primeng/menu';
-import { SessionStore } from '../../core/store/session.store';
-import { LogoutService } from '../../core/services/logout.service';
+import { Menu } from 'primeng/menu';
+import { SessionStore } from '@/app/core/store/session.store';
+import { LogoutService } from '@/app/core/services/logout.service';
 
-/** Derives up-to-two-letter initials from a full name. */
 function initialsOf(fullName: string): string {
     return fullName
         .trim()
@@ -14,15 +14,10 @@ function initialsOf(fullName: string): string {
         .join('');
 }
 
-/**
- * Topbar user menu: identity summary (owned by SessionStore) and logout.
- * The popup panel content is portaled by PrimeNG outside the component, so
- * the header uses inline styles (scoped styles would not reach the overlay).
- */
 @Component({
     selector: 'app-user-menu',
     standalone: true,
-    imports: [MenuModule],
+    imports: [Menu],
     changeDetection: ChangeDetectionStrategy.OnPush,
     styles: [
         `
@@ -43,16 +38,17 @@ function initialsOf(fullName: string): string {
     template: `
         @if (user(); as current) {
             <div class="relative">
-                <button type="button" class="layout-topbar-action layout-topbar-action-highlight" (click)="menu.toggle($event)" aria-label="User menu">
+                <button type="button" class="layout-topbar-action" (click)="menu.toggle($event)" aria-label="User menu">
                     <span class="user-menu-avatar">{{ initials() }}</span>
                 </button>
-                <p-menu #menu [popup]="true" [model]="menuItems()">
+
+                <p-menu #menu [popup]="true" [model]="menuItems()" appendTo="body">
                     <ng-template #start>
-                        <div style="display: flex; flex-direction: column; gap: 0.25rem; padding: 0.75rem 1rem; min-width: 12rem;">
-                            <span style="font-weight: 600;">{{ current.fullName }}</span>
-                            <span style="font-size: 0.875rem; opacity: 0.7;">&#64;{{ current.username }}</span>
+                        <div style="display:flex; flex-direction:column; gap:.25rem; padding:.75rem 1rem; min-width:12rem;">
+                            <span style="font-weight:600;">{{ current.fullName }}</span>
+                            <span style="font-size:.875rem; opacity:.7;">&#64;{{ current.username }}</span>
                             @if (rolesLabel()) {
-                                <span style="font-size: 0.75rem; opacity: 0.6;">{{ rolesLabel() }}</span>
+                                <span style="font-size:.75rem; opacity:.6;">{{ rolesLabel() }}</span>
                             }
                         </div>
                     </ng-template>
@@ -76,7 +72,7 @@ export class UserMenu {
 
     readonly menuItems = computed<MenuItem[]>(() => [
         {
-            label: 'Log out',
+            label: 'Cerrar sesión',
             icon: 'pi pi-sign-out',
             command: () => void this.logoutService.logout()
         }

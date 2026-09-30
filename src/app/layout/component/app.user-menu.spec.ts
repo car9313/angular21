@@ -39,7 +39,7 @@ describe('UserMenu', () => {
         const fixture = TestBed.createComponent(UserMenu);
         fixture.detectChanges();
 
-        const logoutItem = fixture.componentInstance.menuItems().find((item) => item.label === 'Log out');
+        const logoutItem = fixture.componentInstance.menuItems().find((item) => item.label === 'Cerrar sesión');
         logoutItem?.command?.({ originalEvent: new Event('click') } as unknown as MenuItemCommandEvent);
 
         await Promise.resolve();
