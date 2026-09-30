@@ -2,7 +2,26 @@
     display: flex;
     flex-wrap: wrap;
 }
+
+/* Base chip: light background, primary text.
+   PrimeNG Chip binds styleClass on its host element, which lives in this
+   component's template, so the default emulated encapsulation reaches it. */
 .custom-chip {
-    /* reduce el radio de esquina a 0.25rem (4px) */
     --p-chip-border-radius: 0.25rem;
+    --p-chip-background: var(--primary-contrast-color);
+    --p-chip-color: var(--p-primary-text-color);
+    transition: all 300ms;
+}
+
+.custom-chip:hover {
+    --p-chip-background: var(--p-primary-color);
+    cursor: pointer;
+}
+
+/* Current-page chip: persistent primary background */
+.custom-chip.active-chip {
+    --p-chip-background: var(--p-primary-color);
+    --p-chip-color: var(--p-primary-contrast-color);
+    --p-chip-remove-icon-color: var(--p-primary-contrast-color);
+    cursor: default;
 }

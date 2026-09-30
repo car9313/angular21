@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, ViewEncapsulation } from '@angular/core';
 import { BreadcrumbModule } from 'primeng/breadcrumb';
 import { CommonModule } from '@angular/common';
 import { BreadcrumbService } from './breadcrumbs.service';
@@ -7,6 +7,10 @@ import { BreadcrumbService } from './breadcrumbs.service';
     selector: 'app-breadcrumb',
     standalone: true,
     imports: [CommonModule, BreadcrumbModule],
+    styleUrl: './breadcrumbs.component.css',
+    // None: the styles target PrimeNG's internal <nav>/<li>/<a>, which the
+    // default emulated encapsulation cannot reach (see breadcrumbs.component.css).
+    encapsulation: ViewEncapsulation.None,
     template: ` <p-breadcrumb styleClass="custom-breadcrumb" [model]="items()"></p-breadcrumb> `,
     changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -1,17 +1,22 @@
 import { Component, inject } from '@angular/core';
-import { LoadingService } from '../../../core/services/loading.service';
 import { ProgressSpinner } from 'primeng/progressspinner';
-import { AsyncPipe } from '@angular/common';
-import { Observable } from 'rxjs';
+import { LoadingService } from '../../../core/services/loading.service';
 
+/**
+ * App-level full-screen spinner for route transitions and page refreshes.
+ *
+ * Rendered once (AppComponent) and driven by `LoadingService`, which turns on
+ * after a minimum navigation duration and off on every terminal router event.
+ * Signals keep it working under zoneless change detection with no AsyncPipe.
+ */
 @Component({
     selector: 'app-spinner',
-    imports: [ProgressSpinner, AsyncPipe],
+    imports: [ProgressSpinner],
     templateUrl: './spinner.component.html',
     styleUrl: './spinner.component.scss'
 })
 export class SpinnerComponent {
     private readonly loadingService = inject(LoadingService);
 
-    readonly loading$: Observable<boolean> = this.loadingService.loading$;
+    readonly loading = this.loadingService.loading;
 }

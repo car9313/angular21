@@ -1,0 +1,30 @@
+/* ViewEncapsulation.None is required here: PrimeNG binds `styleClass` to an
+   internal <nav> and renders the bc-link/bc-text items and .p-breadcrumb-*
+   links inside ITS OWN template, which the default emulated encapsulation of
+   this component can never reach. Class names are namespaced (custom-breadcrumb,
+   bc-link, bc-text) so this file stays safe to emit unscoped. */
+.custom-breadcrumb {
+    --p-breadcrumb-background: transparent;
+    --p-breadcrumb-padding: 0.5rem;
+    --p-breadcrumb-gap: 0.75rem;
+
+    /* Non-navigable crumb: muted color, no pointer, no hover effect */
+    .bc-text .p-breadcrumb-item-link {
+        color: var(--p-text-muted-color);
+        cursor: default;
+    }
+
+    .bc-text .p-breadcrumb-item-link:hover .p-breadcrumb-item-label {
+        color: var(--p-text-muted-color);
+    }
+
+    /* Navigable crumb: primary color, pointer and underline on hover */
+    .bc-link .p-breadcrumb-item-link {
+        color: var(--p-primary-color);
+        cursor: pointer;
+    }
+
+    .bc-link .p-breadcrumb-item-link:hover .p-breadcrumb-item-label {
+        text-decoration: underline;
+    }
+}

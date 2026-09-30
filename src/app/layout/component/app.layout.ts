@@ -6,19 +6,23 @@ import { AppTopbar } from './app.topbar';
 import { AppSidebar } from './app.sidebar';
 import { AppFooter } from './app.footer';
 import { BreadcrumbComponent } from '@/app/shared/components/breadcrumbs/breadcrumbs.component';
+import { QuickAccessComponent } from '@/app/shared/components/chip-navigation-history/quick-access.component';
 import { LayoutService } from '@/app/layout/service/layout.service';
 
 @Component({
     selector: 'app-layout',
     standalone: true,
-    imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter, BreadcrumbComponent, ToastModule],
+    imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter, BreadcrumbComponent, QuickAccessComponent, ToastModule],
     changeDetection: ChangeDetectionStrategy.Eager,
     template: `<div class="layout-wrapper" [ngClass]="containerClass()">
         <app-topbar></app-topbar>
         <app-sidebar></app-sidebar>
         <div class="layout-main-container">
             <div class="layout-main">
-                <app-breadcrumb />
+                <div class="my-4 flex flex-col gap-4">
+                    <app-breadcrumb />
+                    <app-chip-breadcrumb />
+                </div>
                 <router-outlet></router-outlet>
             </div>
             <app-footer></app-footer>

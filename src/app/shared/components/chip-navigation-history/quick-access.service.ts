@@ -1,7 +1,7 @@
 import { Injectable, signal, Signal, inject, effect } from '@angular/core';
 import { Router, NavigationEnd, ActivatedRouteSnapshot } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { AuthService } from '../../../modules/auth/services/auth.service';
+import { SessionStore } from '../../../core/store/session.store';
 
 export interface QuickAccess {
     label: string;
@@ -19,7 +19,7 @@ export class QuickAccessService {
     private readonly _currentUrl = signal<string>('');
     /** URL actual normalizada (sin query, decodificada, sin slash final) para marcar el chip activo */
     readonly currentUrl = this._currentUrl.asReadonly();
-    private authService = inject(AuthService);
+    private readonly session = inject(SessionStore);
     private readonly STORAGE_KEY = 'quick_access_history';
     private readonly router = inject(Router);
 
@@ -38,13 +38,12 @@ export class QuickAccessService {
             sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(value));
         });
 
-        // 🔹 Limpiar en logout
+        // Limpiar en logout: SessionStore es el �nico evaluador de sesi�n
+        // (login/restore lo pueblan, LogoutService llama reset()).
         effect(() => {
-            this.authService.ensureLoggedIn().subscribe({
-                next: (state) => {
-                    if (!state) this.clear();
-                }
-            });
+            if (!this.session.isAuthenticated()) {
+                this.clear();
+            }
         });
 
         // 🔹 Escuchar navegación y actualizar historial
