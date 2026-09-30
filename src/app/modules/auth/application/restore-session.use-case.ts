@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { AuthRepository } from '../infrastructure/http/auth-repository';
 import { TokenAuthService } from '../../../core/services/token-auth.service';
 import { SessionStore } from '../../../core/store/session.store';
+import { IdentityHydrator } from './identity-hydrator';
 
 /**
  * Session rehydration at app boot.
@@ -25,6 +26,7 @@ export class RestoreSessionUseCase {
     private readonly repository = inject(AuthRepository);
     private readonly tokenAuth = inject(TokenAuthService);
     private readonly session = inject(SessionStore);
+    private readonly hydrator = inject(IdentityHydrator);
 
     async execute(): Promise<void> {
         await this.tokenAuth.restore();
@@ -35,16 +37,7 @@ export class RestoreSessionUseCase {
         }
 
         try {
-            const user = await this.repository.getCurrentUser();
-            const permissions = user.roles.flatMap((role) => role.permissions);
-
-            this.session.setUser({
-                id: user.id,
-                username: user.username,
-                fullName: user.fullName,
-                roles: user.roles.map((role) => role.name)
-            });
-            this.session.setPermissions(permissions);
+            this.hydrator.apply(await this.repository.getCurrentUser());
         } catch {
             // Tokens present but unusable (expired both, revoked, API down
             // with 401/418): fail closed to a clean logged-out state.

@@ -53,6 +53,21 @@ describe('SessionStore', () => {
         expect(store.hasPermission('users', ['Read', 'Delete'])).toBe(false);
     });
 
+    it('unions actions for the same resource across roles instead of overwriting', () => {
+        store.setUser(user);
+        // Flat list as IdentityHydrator builds it from /api/auth/user/current:
+        // one entry per role/resource grant. Role A grants users/Leer, role B
+        // grants users/Crear — the last entry must not erase the first.
+        store.setPermissions([
+            { resource: 'users', actions: ['Leer'] },
+            { resource: 'users', actions: ['Crear'] }
+        ]);
+
+        expect(store.hasPermission('users', ['Leer'])).toBe(true);
+        expect(store.hasPermission('users', ['Crear'])).toBe(true);
+        expect(store.hasPermission('users', ['Leer', 'Crear'])).toBe(true);
+    });
+
     it('denies unknown resources and unauthenticated access', () => {
         store.setUser(user);
         store.setPermissions(permissions);

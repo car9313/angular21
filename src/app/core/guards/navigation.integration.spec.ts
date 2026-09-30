@@ -57,4 +57,20 @@ describe('post-login navigation (real routes)', () => {
         const activated = outlet?.nextElementSibling;
         expect(activated, 'a component must be projected right after the root outlet').toBeTruthy();
     });
+
+    it('redirects to /auth/access when permissionGuard denies a route resource', async () => {
+        // The hydrated session above grants panel/users but NOT 'Role',
+        // so the real /seguridad/roles route (resource: 'Role') must be
+        // refused by permissionGuard wired on the parent layout route.
+        const fixture = TestBed.createComponent(TestHost);
+        fixture.detectChanges();
+
+        const result = await router.navigateByUrl('/seguridad/roles');
+        fixture.detectChanges();
+
+        // Guard redirects resolve the navigation chain toward the redirect
+        // target, so the contract under test is the final URL.
+        expect(result, 'the redirect chain must complete').toBe(true);
+        expect(router.url).toBe('/auth/access');
+    });
 });

@@ -3,6 +3,7 @@ import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpInterceptorFn, HttpReq
 import { Router } from '@angular/router';
 import { Observable, Subject, catchError, switchMap, take, throwError } from 'rxjs';
 import { TokenAuthService } from '../services/token-auth.service';
+import { RehydrateIdentityUseCase } from '../../modules/auth/application/rehydrate-identity.use-case';
 
 /**
  * URLs that never carry the Authorization header and never trigger the
@@ -28,6 +29,14 @@ const NO_AUTH_URLS = ['/assets/config.', '/api/auth/login', '/api/auth/refresh-t
  */
 const EXCLUDED_403_URLS: string[] = [];
 
+/**
+ * URLs whose own 403 must not start the identity self-heal. The heal calls
+ * `user/current`, so letting its 403 re-enter the heal branch would loop.
+ * (Single-flight already covers concurrent callers; this covers the request
+ * the heal itself issues.)
+ */
+const NO_HEAL_403_URLS: string[] = ['/api/auth/user/current'];
+
 const LOGOUT_ROUTE = '/auth/login';
 const ACCESS_DENIED_ROUTE = '/auth/access';
 
@@ -42,9 +51,34 @@ const ACCESS_DENIED_ROUTE = '/auth/access';
  */
 let refreshQueue: Subject<string | null> | null = null;
 
+/**
+ * Single-flight identity self-heal.
+ *
+ * A 403 means the backend rejected an action our CACHED permissions still
+ * allowed (the session's permission cache is only re-read at login / F5).
+ * Re-reading the identity makes the permission-gated UI drop that action
+ * without an F5. It does NOT retry the rejected request — the server already
+ * decided against the database with this very token.
+ *
+ * Parallel 403s share ONE identity call; the slot is cleared on settle so a
+ * later 403 can heal again.
+ */
+let healQueue: Promise<void> | null = null;
+
+function rehydrateOnce(rehydrate: RehydrateIdentityUseCase): void {
+    if (healQueue) return;
+
+    const run = rehydrate.execute();
+    healQueue = run;
+    void run.finally(() => {
+        if (healQueue === run) healQueue = null;
+    });
+}
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const tokenAuth = inject(TokenAuthService);
     const router = inject(Router);
+    const rehydrate = inject(RehydrateIdentityUseCase);
 
     if (NO_AUTH_URLS.some((url) => req.url.includes(url))) {
         return next(req);
@@ -73,6 +107,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             // 403 (or any other status): side effect (redirect) with a single
             // throw exit — nothing can be added after this block by mistake.
             if (httpError.status === 403 && !EXCLUDED_403_URLS.some((url) => req.url.includes(url))) {
+                // Self-heal in parallel with the redirect: the store is corrected
+                // whenever the identity call lands (even after the access-denied
+                // page is up), so the UI never keeps offering the rejected action.
+                // Fire-and-forget — a failed re-read must not delay or cancel the
+                // redirect.
+                if (!NO_HEAL_403_URLS.some((url) => req.url.includes(url))) {
+                    rehydrateOnce(rehydrate);
+                }
                 void router.navigateByUrl(ACCESS_DENIED_ROUTE);
             }
 

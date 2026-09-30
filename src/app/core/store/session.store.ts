@@ -46,7 +46,19 @@ export const SessionStore = signalStore(
         isAuthenticated: computed(() => user() !== null),
         permissionMap: computed(() => {
             const map = new Map<string, Set<string>>();
-            permissions().forEach((permission) => map.set(permission.resource, new Set(permission.actions)));
+            permissions().forEach((permission) => {
+                const granted = map.get(permission.resource);
+                if (granted) {
+                    // UNION, not overwrite: the backend may merge several roles
+                    // into one flat permission list, and a later entry for the
+                    // same resource must not drop actions granted by an earlier
+                    // one (e.g. Role -> [Leer] from role A + Role -> [Crear]
+                    // from role B must yield [Leer, Crear]).
+                    permission.actions.forEach((action) => granted.add(action));
+                } else {
+                    map.set(permission.resource, new Set(permission.actions));
+                }
+            });
             return map;
         })
     })),

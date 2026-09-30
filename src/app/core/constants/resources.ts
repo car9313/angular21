@@ -3,11 +3,11 @@
  * directives and feature modules.
  */
 export const RESOURCES = {
-    Panel: 'panel',
-    Users: 'users',
-    Roles: 'roles',
-    Audits: 'audits',
-    Settings: 'settings'
+    Nomenclators: 'Nomenclators',
+    Roles: 'Role',
+    Users: 'User',
+    SecConfig: 'SecConfig',
+    Audits: 'Audit'
 } as const;
 
 export type Resource = (typeof RESOURCES)[keyof typeof RESOURCES];

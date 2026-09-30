@@ -29,8 +29,8 @@ export const MENU_ITEMS: SecuredMenuItem[] = [
             {
                 label: 'Panel principal',
                 icon: 'pi pi-fw pi-home',
+                path: '/panel-principal',
                 routerLink: ['/panel-principal'],
-                resource: RESOURCES.Panel,
                 requiredActions: [ACTIONS.Read]
             }
         ]
@@ -38,14 +38,17 @@ export const MENU_ITEMS: SecuredMenuItem[] = [
     {
         label: 'Administración',
         icon: 'pi pi-fw pi-briefcase',
+        path: '/seguridad',
         items: [
             {
                 label: 'Seguridad',
                 icon: 'pi pi-fw pi-lock',
+                path: '/seguridad',
                 items: [
                     {
                         label: 'Usuarios',
                         icon: 'pi pi-fw pi-users',
+                        path: '/seguridad/usuarios',
                         routerLink: ['/seguridad/usuarios'],
                         resource: RESOURCES.Users,
                         requiredActions: [ACTIONS.Read]
@@ -53,6 +56,7 @@ export const MENU_ITEMS: SecuredMenuItem[] = [
                     {
                         label: 'Roles',
                         icon: 'pi pi-fw pi-id-card',
+                        path: '/seguridad/roles',
                         routerLink: ['/seguridad/roles'],
                         resource: RESOURCES.Roles,
                         requiredActions: [ACTIONS.Read]
@@ -60,17 +64,11 @@ export const MENU_ITEMS: SecuredMenuItem[] = [
                     {
                         label: 'Auditorías',
                         icon: 'pi pi-fw pi-history',
+                        path: '/seguridad/auditorias',
                         routerLink: ['/seguridad/auditorias'],
                         resource: RESOURCES.Audits,
                         requiredActions: [ACTIONS.Read]
                     },
-                    {
-                        label: 'Configuración',
-                        icon: 'pi pi-fw pi-cog',
-                        routerLink: ['/seguridad/configuracion'],
-                        resource: RESOURCES.Settings,
-                        requiredActions: [ACTIONS.Read]
-                    }
                 ]
             }
         ]

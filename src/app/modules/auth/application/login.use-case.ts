@@ -3,7 +3,7 @@ import { AuthRepository } from '../infrastructure/http/auth-repository';
 import { FingerprintService } from '../infrastructure/fingerprint.service';
 import { TokenAuthService } from '../../../core/services/token-auth.service';
 import { expiryFromLifetime } from '../../../core/utils/token-expiry';
-import { SessionStore } from '../../../core/store/session.store';
+import { IdentityHydrator } from './identity-hydrator';
 
 /**
  * Login orchestration: authenticate → persist tokens → fetch identity from
@@ -21,7 +21,7 @@ export class LoginUseCase {
     private readonly repository = inject(AuthRepository);
     private readonly fingerprint = inject(FingerprintService);
     private readonly tokenAuth = inject(TokenAuthService);
-    private readonly session = inject(SessionStore);
+    private readonly hydrator = inject(IdentityHydrator);
 
     async execute(username: string, password: string): Promise<void> {
         // PERSISTENT device fingerprint (generated once, stored, reused):
@@ -41,15 +41,6 @@ export class LoginUseCase {
 
         const user = await this.repository.getCurrentUser();
 
-        // Flatten role-embedded permissions into the store's flat catalog.
-        const permissions = user.roles.flatMap((role) => role.permissions);
-
-        this.session.setUser({
-            id: user.id,
-            username: user.username,
-            fullName: user.fullName,
-            roles: user.roles.map((role) => role.name)
-        });
-        this.session.setPermissions(permissions);
+        this.hydrator.apply(user);
     }
 }

@@ -5,7 +5,10 @@ import { ACTIONS } from '../../../core/constants/actions';
 
 /**
  * Roles module routes, mounted under /seguridad/roles.
- * resource + actions feed the permissionGuard (declared on the parent route).
+ * resource + actions feed permissionGuard, declared on the parent layout
+ * route in app.routes.ts — canActivateChild guards receive this child route's
+ * data, and authGuard (same array, first position) has already awaited
+ * session hydration before the permission check runs.
  */
 export default [
     {
