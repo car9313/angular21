@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Dialog } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -78,6 +78,19 @@ export class RoleNameDialogComponent {
     protected readonly form = this.fb.group({
         name: ['', [Validators.required]]
     });
+
+    constructor() {
+        // Sync input -> form: edit mode must PRE-FILL the field with the role's
+        // current name. `role` arrives via @if-mounted input (null = create),
+        // so without this the dialog always opened empty on edit.
+        effect(() => {
+            const name = this.role()?.name ?? '';
+            const control = this.form.controls.name;
+            if (control.value !== name) {
+                control.setValue(name);
+            }
+        });
+    }
 
     protected onSubmit(): void {
         if (this.form.invalid) {
