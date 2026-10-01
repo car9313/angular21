@@ -44,12 +44,13 @@ import { NotificationService } from '@/app/core/services/notification-services';
         >
             @if (store.loading()) {
                 <div class="flex justify-center p-6">
-                    <p-progressspinner styleClass="w-8 h-8" />
+                    <p-progressspinner styleClass="w-8 h-8"></p-progressspinner>
                 </div>
             } @else if (store.error(); as error) {
                 <div class="flex flex-col items-center gap-3 p-4">
                     <p class="p-error text-center">{{ error }}</p>
-                    <p-button label="Reintentar" icon="pi pi-refresh" severity="secondary" (onClick)="store.load(role().id)" />
+                    <p-button label="Reintentar" icon="pi pi-refresh" severity="secondary"
+                              (onClick)="store.load(role().id)" />
                 </div>
             } @else if (treeData().length === 0) {
                 <div class="p-4 text-surface-500">No hay permisos configurados para asignar.</div>
@@ -61,7 +62,8 @@ import { NotificationService } from '@/app/core/services/notification-services';
                 />
 
                 <div class="flex justify-end gap-2 mt-4">
-                    <p-button label="Cancelar" [text]="true" [disabled]="store.saving()" type="button" (onClick)="cancelled.emit()" />
+                    <p-button label="Cancelar" [text]="true" [disabled]="store.saving()" type="button"
+                              (onClick)="cancelled.emit()" />
                     <p-button label="Guardar" icon="pi pi-check" [loading]="store.saving()" (onClick)="onSubmit()" />
                 </div>
             }
