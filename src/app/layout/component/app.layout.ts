@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, effect, inject, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
@@ -8,6 +8,7 @@ import { AppFooter } from './app.footer';
 import { BreadcrumbComponent } from '@/app/shared/components/breadcrumbs/breadcrumbs.component';
 import { QuickAccessComponent } from '@/app/shared/components/chip-navigation-history/quick-access.component';
 import { LayoutService } from '@/app/layout/service/layout.service';
+import { InactivityService } from '@/app/core/services/inactivity.service';
 
 @Component({
     selector: 'app-layout',
@@ -32,8 +33,19 @@ import { LayoutService } from '@/app/layout/service/layout.service';
         <p-toast position="top-right" [life]="3000"></p-toast>
     </div> `
 })
-export class AppLayout {
+export class AppLayout implements OnInit, OnDestroy {
     layoutService = inject(LayoutService);
+    private readonly inactivity = inject(InactivityService);
+
+    ngOnInit(): void {
+        // El layout solo existe con sesión activa: el lock por inactividad
+        // arranca acá y muere con el componente (logout navega fuera).
+        this.inactivity.start();
+    }
+
+    ngOnDestroy(): void {
+        this.inactivity.stop();
+    }
 
     constructor() {
         effect(() => {
