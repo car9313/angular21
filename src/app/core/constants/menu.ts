@@ -69,6 +69,14 @@ export const MENU_ITEMS: SecuredMenuItem[] = [
                         resource: RESOURCES.Audits,
                         requiredActions: [ACTIONS.Read]
                     },
+                    {
+                        label: 'Configuración',
+                        icon: 'pi pi-fw pi-cog',
+                        path: '/seguridad/configuracion',
+                        routerLink: ['/seguridad/configuracion'],
+                        resource: RESOURCES.SecConfig,
+                        requiredActions: [ACTIONS.Update]
+                    },
                 ]
             }
         ]

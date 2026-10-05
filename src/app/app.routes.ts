@@ -26,6 +26,13 @@ export const appRoutes: Routes = [
                 path: 'seguridad',
                 loadChildren: () => import('./modules/security/roles/roles.routes').then((m) => m.default),
                 data: { title: 'Seguridad' }
+            },
+            {
+                // Angular merges same-path route configs: this second entry does
+                // NOT touch the roles one above.
+                path: 'seguridad',
+                loadChildren: () => import('./modules/security/settings/settings.routes').then((m) => m.default),
+                data: { title: 'Seguridad' }
             }
         ]
     },
