@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Dialog } from 'primeng/dialog';
@@ -23,7 +24,7 @@ import { NotificationService } from '@/app/core/services/notification-services';
 @Component({
     selector: 'app-role-name-dialog',
     standalone: true,
-    imports: [ReactiveFormsModule, Dialog, ButtonModule, InputTextModule],
+    imports: [NgClass, ReactiveFormsModule, Dialog, ButtonModule, InputTextModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <p-dialog
@@ -46,9 +47,12 @@ import { NotificationService } from '@/app/core/services/notification-services';
                     placeholder="Ej. Supervisor"
                     autocomplete="off"
                     class="w-full"
+                    [ngClass]="{
+                        'ng-invalid ng-dirty': form.controls.name.invalid && (form.controls.name.dirty || form.controls.name.touched)
+                    }"
                 />
                 @if (form.controls.name.invalid && form.controls.name.touched) {
-                    <small class="p-error">El nombre es requerido.</small>
+                    <small class="block mt-1 text-red-500 dark:text-red-400">El nombre es requerido.</small>
                 }
 
                 <div class="flex justify-end gap-2 mt-4">

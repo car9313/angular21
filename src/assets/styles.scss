@@ -14,3 +14,11 @@ body {
     font-size: 1rem;
     font-weight: normal;
 }
+
+html .p-inputtext.ng-invalid.ng-dirty:enabled:focus,
+html p-inputnumber.ng-invalid.ng-dirty > .p-inputtext:enabled:focus,
+html p-input-number.ng-invalid.ng-dirty > .p-inputtext:enabled:focus,
+html p-inputNumber.ng-invalid.ng-dirty > .p-inputtext:enabled:focus,
+html p-password.ng-invalid.ng-dirty .p-inputtext:enabled:focus {
+    border-color: var(--p-inputtext-invalid-border-color, #f87171);
+}

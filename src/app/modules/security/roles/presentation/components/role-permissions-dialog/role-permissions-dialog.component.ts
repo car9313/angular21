@@ -48,7 +48,7 @@ import { NotificationService } from '@/app/core/services/notification-services';
                 </div>
             } @else if (store.error(); as error) {
                 <div class="flex flex-col items-center gap-3 p-4">
-                    <p class="p-error text-center">{{ error }}</p>
+                    <p class="text-red-500 dark:text-red-400 text-center">{{ error }}</p>
                     <p-button label="Reintentar" icon="pi pi-refresh" severity="secondary"
                               (onClick)="store.load(role().id)" />
                 </div>
