@@ -5,10 +5,11 @@ import { QueryParams } from '../../interfaces/query-params';
 
 /**
  * Versión del formato persistido.
- * Incrementar cuando cambie el shape de `QueryParams`.
- * Si la versión del storage no coincide, se descarta.
+ * Incrementar cuando cambie el shape de `QueryParams` o cuando cambien
+ * defaults de paginación (si no, un payload viejo restauraría el PageSize
+ * anterior y pisaría el nuevo default). Si la versión no coincide, se descarta.
  */
-const STORAGE_VERSION = 1;
+const STORAGE_VERSION = 2;
 
 /** Payload persistido en sessionStorage. */
 interface PersistedQuery {

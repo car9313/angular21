@@ -7,7 +7,7 @@ export const DEFAULT_QUERY: QueryParams = {
     search: { SearchText: '', Strict: false },
     filter: [],
     sort: [],
-    pag: { Page: 1, PageSize: 10 }
+    pag: { Page: 1, PageSize: 5 }
 };
 
 export function withQuery() {

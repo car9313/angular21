@@ -111,7 +111,7 @@ describe('HttpParamsBuilder', () => {
         const second = defaultQuery();
 
         expect(first).not.toBe(second);
-        expect(first.pag).toEqual({ Page: 1, PageSize: 10 });
+        expect(first.pag).toEqual({ Page: 1, PageSize: 5 });
         expect(first.search).toEqual({ SearchText: '', Strict: false });
         expect(first.filter).toEqual([]);
         expect(first.sort).toEqual([]);
