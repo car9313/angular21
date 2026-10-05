@@ -1,17 +1,34 @@
 <p-toolbar #toolbarContainer [class.hidden]="!shouldShow()">
     <div class="flex items-center gap-2 flex-1">
+        <ng-content select="[toolbar-start]"></ng-content>
+        <span class="flex-1"></span>
+
         @if (config().showAddButton !== false) {
-            <p-button
-                *appHasPermission="let ok; resource: resource(); actions: actions()"
-                pTooltip="Adicionar"
-                tooltipPosition="top"
-                icon="pi pi-plus"
-                severity="primary"
-                rounded="true"
-                class="p-button-rounded shadow-md hover:scale-105 transition-transform duration-200 mr-2"
-                [attr.aria-label]="'Agregar nuevo'"
-                (onClick)="handleNew()"
-            ></p-button>
+            @if (config().addLabel) {
+                <!-- Labeled variant: unambiguous on wide toolbars (WCAG-friendly
+                     visible text + accessible name on the inner <button>). -->
+                <p-button
+                    *appHasPermission="let ok; resource: resource(); actions: actions()"
+                    [label]="config().addLabel"
+                    icon="pi pi-plus"
+                    severity="primary"
+                    [ariaLabel]="config().addLabel"
+                    (onClick)="handleNew()"
+                ></p-button>
+            } @else {
+                <!-- Legacy icon-only variant for screens without addLabel. -->
+                <p-button
+                    *appHasPermission="let ok; resource: resource(); actions: actions()"
+                    pTooltip="Adicionar"
+                    tooltipPosition="top"
+                    icon="pi pi-plus"
+                    severity="primary"
+                    rounded="true"
+                    ariaLabel="Agregar nuevo"
+                    class="p-button-rounded shadow-md hover:scale-105 transition-transform duration-200 mr-2"
+                    (onClick)="handleNew()"
+                ></p-button>
+            }
         }
 
         @for (btn of extraButtons(); track btn.id) {
@@ -46,8 +63,6 @@
             }
         }
 
-        <ng-content select="[toolbar-start]"></ng-content>
-        <span class="flex-1"></span>
         <ng-content select="[toolbar-end]"></ng-content>
     </div>
 </p-toolbar>

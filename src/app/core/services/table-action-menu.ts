@@ -8,6 +8,13 @@ import { SessionStore } from '@/app/core/store/session.store';
 @Injectable()
 export class TableActionMenuService<T extends object> {
     /**
+     * Tailwind red-600: 4.8:1 on light surfaces (WCAG AA for normal text).
+     * Kept as a literal because runtime theme CSS variables cannot be relied
+     * upon for content-level severity colors in @primeuix/themes v2.
+     */
+    private static readonly DANGER_COLOR = '#dc2626';
+
+    /**
      * Cache is keyed by ROW REFERENCE. Entities replaced by setAllEntities get
      * new references, so stale menu models are never served — but the caches
      * grow unbounded across page loads. Clear them when a screen reloads
@@ -29,6 +36,11 @@ export class TableActionMenuService<T extends object> {
                 label: action.label,
                 icon: action.icon,
                 disabled: action.disabled ? action.disabled(row) : false,
+                // PrimeNG v21 MenuItem has no `severity`; danger is styled as an
+                // inline color because the popup renders with appendTo="body"
+                // and therefore escapes every component stylesheet. Inline
+                // styles are the only override that survives the runtime theme.
+                style: action.severity === 'danger' ? { color: TableActionMenuService.DANGER_COLOR } : undefined,
                 command: () => action.command(row)
             }));
 

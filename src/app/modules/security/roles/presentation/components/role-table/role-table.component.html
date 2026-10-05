@@ -8,8 +8,9 @@
     [lazy]="true"
     [paginator]="true"
     [rowHover]="true"
+    size="small"
     [showCurrentPageReport]="true"
-    [rowsPerPageOptions]="rowsPerPageOptions()"
+    [rowsPerPageOptions]="visibleRowsPerPageOptions()"
     [tableStyle]="{ 'min-width': '100%' }"
     currentPageReportTemplate="Mostrando del {first} al {last} de {totalRecords} roles"
     selectionMode="single"
@@ -63,8 +64,10 @@
                     />
 
                     <p-button
+                        [text]="true"
                         [rounded]="true"
-                        [outlined]="true"
+                        severity="secondary"
+                        [ariaLabel]="'Acciones de ' + role.name"
                         pTooltip="Listado de Acciones"
                         tooltipPosition="top"
                         [class.active]="isMenuOpen(role)"
@@ -102,12 +105,18 @@
                     <app-empty-state
                         type="error"
                         title="Error de carga de datos"
-                        description="No se pudieron cargar los elementos. Por favor, intente nuevamente."
+                        description="No se pudieron cargar los roles. Por favor, intente nuevamente."
+                    />
+                } @else if (searchText()) {
+                    <app-empty-state
+                        icon="pi pi-search"
+                        title="Sin resultados"
+                        [description]="emptySearchDescription()"
                     />
                 } @else {
                     <app-empty-state
-                        title="No hay elementos disponibles"
-                        description="La lista de elementos está vacía. Agrega nuevos elementos o recarga los datos."
+                        title="No hay roles todavía"
+                        description="Crea el primer rol con el botón «Nuevo Rol»."
                     />
                 }
             </td>

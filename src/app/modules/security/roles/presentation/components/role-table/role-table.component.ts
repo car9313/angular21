@@ -42,6 +42,8 @@ export class RoleTableComponent {
     readonly currentPage = input(1);
     readonly pageSize = input(10);
     readonly rowsPerPageOptions = input([5, 10, 20]);
+    /** Búsqueda activa: permite distinguir "sin resultados" de "sin datos". */
+    readonly searchText = input('');
 
     // ─── Outputs ────────────────────────────────────────────────────────
     readonly selectRow = output<Role>();
@@ -62,6 +64,21 @@ export class RoleTableComponent {
     });
 
     readonly hasActionColumn = computed(() => this.items().some((item) => this.menuService.hasAnyAction(item, this.rowActions())));
+
+    /**
+     * El selector de filas por página solo se muestra cuando hay más de una
+     * página posible. Si todo cabe en la página actual (p. ej. 7 registros con
+     * pageSize 10), mostrar "10" junto a "Mostrando del 1 al 7 de 7" confunde.
+     * `undefined` oculta el dropdown (PrimeNG lo renderiza con *ngIf="rowsPerPageOptions").
+     */
+    readonly visibleRowsPerPageOptions = computed<number[] | undefined>(() =>
+        this.totalRecords() > this.pageSize() ? this.rowsPerPageOptions() : undefined
+    );
+
+    /** Copy del empty state cuando el filtro es una búsqueda sin coincidencias. */
+    readonly emptySearchDescription = computed(
+        () => `No se encontraron roles que coincidan con «${this.searchText()}».`
+    );
 
     readonly skeletonRows = Array.from({ length: 5 }, (_, i) => i);
 

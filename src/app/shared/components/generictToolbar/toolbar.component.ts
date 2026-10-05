@@ -25,6 +25,13 @@ export interface ToolbarButton {
 export interface ToolbarConfig {
     visible?: boolean;
     showAddButton?: boolean;
+    /**
+     * Label for the create button (e.g. "Nuevo Rol"). When set, the button
+     * renders as a labeled text+icon button — the enterprise-app convention:
+     * an unlabeled "+" is ambiguous on wide toolbars. When absent, the legacy
+     * icon-only rounded button is rendered.
+     */
+    addLabel?: string;
 }
 
 @Component({

@@ -38,7 +38,10 @@ import { RESOURCES } from '@/app/core/constants/resources';
         <div class="card flex flex-col gap-8">
             <!--            <app-role-filters />-->
 
-            <app-toolbar [resource]="RESOURCES.Roles" [actions]="[ACTIONS.Create]" (created)="store.openAdd()" [config]="{ visible: true }">
+            <app-toolbar [resource]="RESOURCES.Roles" [actions]="[ACTIONS.Create]" (created)="store.openAdd()" [config]="{ visible: true, addLabel: 'Nuevo Rol' }">
+                <!-- Botón de alta y buscador agrupados a la derecha: el toolbar
+                     empuja start a la izquierda, así que el cluster completo
+                     (alta + búsqueda) se coloca en toolbar-end. -->
                 <div toolbar-end>
                     <app-search [searchText]="store.searchText()" (searchSubmitted)="store.setSearchAndReload($event)"></app-search>
                 </div>
@@ -54,6 +57,7 @@ import { RESOURCES } from '@/app/core/constants/resources';
                 [totalRecords]="store.meta().totalCount"
                 [currentPage]="store.currentPage()"
                 [pageSize]="store.pageSize()"
+                [searchText]="store.searchText()"
                 (selectRow)="store.select($event.id)"
                 (pageChange)="onPageChange($event)"
             />
@@ -67,8 +71,8 @@ export class RolesPage implements OnInit {
     private readonly confirm = inject(ConfirmationService);
     private readonly notify = inject(NotificationService);
 
+    // Solo el nombre: el ID es ruido visual para el usuario de negocio.
     readonly columns: ColumnConfig<Role>[] = [
-        { field: 'id', header: 'ID', sortable: false, className: 'text-center' },
         { field: 'name', header: 'Nombre', sortable: false }
     ];
 
@@ -92,6 +96,7 @@ export class RolesPage implements OnInit {
         {
             label: 'Eliminar',
             icon: 'pi pi-trash',
+            severity: 'danger',
             permission: { resource: RESOURCES.Roles, action: ACTIONS.Delete },
             visible: (row) => !row.isUnEditable && !row.isUnDeletable,
             command: (row) => this.onDelete(row)
