@@ -114,10 +114,27 @@ Stack fijado en 21, demos de Sakai eliminadas, `angular.json` saneado (builder `
 2. **Duplicados de páginas demo**: ✅ RESUELTO en 2.4 — `pages/auth/` es la real (login ES + guards); los duplicados demo de `shared/pages/` (`access`, `error`, `empty`) fueron ELIMINADOS; queda solo `notfound` (único importado por `app.routes`).
 3. **`has-permission.directive`** — ✅ resuelto con el ítem 1 (contexto `{ ok }` en `createEmbeddedView`).
 4. ~~Verificar 2.2 y luego Fase 2.3 → 2.6~~ — ✅ todas las sub-fases de Fase 2 completadas (2.0→2.6).
-5. **Fase 2.5 residual**: pantallas de usuarios y auditorías (roles ✅ completo; **configuración ✅ 2026-10-05**, ver §4 fila 2.5).
-6. **Fase 3**: `withServerTable` (feature propia con tests: stale responses, page cache) + shared UI (tabla, toolbar, filtros, async-select, skeletons) + catálogos con `httpResource`.
+5. **Fase 2.5 residual**: pantallas de usuarios y auditorías (roles ✅ completo; **configuración ✅ 2026-10-05**, ver §4 fila 2.5). ⏳ En curso 2026-10-05 — ver "Decisiones — residual Fase 2.5" al final de este §5.
+6. **Fase 3**: `withServerTable` (feature propia de **lectura** con tests: stale responses, page cache; ver requisito de diseño abajo) + **`withServerTableWrites`** (escrituras, separable) + shared UI (tabla, toolbar, filtros, async-select, skeletons) + catálogos con `httpResource`.
 7. **Fase 4**: screen piloto end-to-end validando el patrón completo.
 8. Actualizar `ESTADO-DEL-PROYECTO.md` al cierre de cada bloque (⚠️ este doc se desactualizó durante 2026-09-30; actualizado 2026-10-01).
+
+### Decisiones — residual Fase 2.5 (usuarios + auditorías) y Fase 3 (2026-10-05)
+
+**Estrategia de abstracción (consenso 2026-10-05, tras analizar `docs/ver.md`):** un único `withServerTable` monolítico era **demasiado**. La abstracción de lista se **difiere a Fase 3** y se parte en dos features componibles, no en una gigante:
+
+- **`withServerTable` = feature de LECTURA (base de la grilla)**: query + entidades + paginación (`pag`/`sort`/`filter`) + `loading`/`meta` + stale responses + page cache + selección. Sin `saving`, sin `create/update/delete`. La compone todo listado, lea o escriba.
+- **`withServerTableWrites` (o `withCrudWrites`) = feature de ESCRITURA separable**: `saving` + `create/update/deleteAndReload` (+ optimizaciones custom como reset). Solo la componen pantallas CRUD (Usuarios). Una pantalla read-only (Auditorías) **nunca** la compone → no arrastra escrituras ni estado de escritura.
+
+**Mientras tanto (bloque actual), la composición actual ya separa lectura de escritura 1:1, sin tocar código de Fase 3** (cuando Fase 3 aterrice, se aspira a `withServerTable`/`withServerTableWrites` sin cambio de comportamiento):
+- `AuditListStore` compone solo lectura: `withEntities`/`withQuery`/`withListStatus`/`withFilters`/`withModal('detail')`/`withSelection`. Sin `saving`, sin writes.
+- `UserListStore` compone las mismas de lectura **+** `withState({saving})` **+** métodos de escritura (`create/update/delete/resetPasswordAndReload`).
+
+**Alcances decididos:**
+- **Usuarios** (`/api/users`, recurso `User`): listado (búsqueda libre) + **CRUD** + detalle + acción **reset password** por fila. Create `{userName,fullName,password,passwordConfirmation,roleIds}`; update `{fullName,password?,passwordConfirmation?,roleIds}`; `POST /{id}/reset-password`. Columnas de la tabla: **Usuario · Nombre** (sin ID, §9.3). Catálogo de roles en el diálogo vía `RoleRepository.list()` (fetch manual, NO `httpResource` aún).
+- **Auditorías** (`/api/v1/audits` + `GET /actions-types`, recurso `Audit`): listado **read-only** + filtros (`UserName/UserFullName/UserHostAddress/Action/InitDate/EndDate`) + detalle con mensaje completo. `Audit{id:string,userName,userFullName,userHostAddress,moment,actionDescription,message}`; `ActionType{id:number,name}`. Sin CRUD ni `saving`.
+
+**Validación:** estándar §8 (R1–R4) en el `user-dialog`. La **fuerza de password** se deriva de `SettingsStore.current().passwordSettings` (root-scoped ya existente — el formulario de usuario lo consume sin tocar nada); cross-validator `passwordMatch`. Auditorías no tiene formularios con reglas de negocio.
 
 ## 6. Runbook (en la otra PC)
 
