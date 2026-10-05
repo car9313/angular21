@@ -9,6 +9,7 @@ import Nora from '@primeuix/themes/nora';
 import { PrimeNG } from 'primeng/config';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { LayoutService } from '@/app/layout/service/layout.service';
+import { CORPORATE_TOKENS } from '@/app/theme/corporate.preset';
 
 const presets = {
     Aura,
@@ -287,7 +288,20 @@ export class AppConfigurator implements OnInit {
         return palettes;
     });
 
+    /**
+     * Every runtime theme change carries the corporate structural tokens:
+     * switching preset/primary in the configurator must never drop the brand
+     * radius scale, while the chosen primary palette (buildPrimaryExt)
+     * intentionally overrides the corporate default color.
+     */
     getPresetExt() {
+        return {
+            ...CORPORATE_TOKENS,
+            semantic: { ...CORPORATE_TOKENS.semantic, ...this.buildPrimaryExt().semantic }
+        };
+    }
+
+    private buildPrimaryExt() {
         const color: SurfacesType = this.primaryColors().find((c) => c.name === this.selectedPrimaryColor()) || {};
         const preset = this.layoutService.layoutConfig().preset;
 
