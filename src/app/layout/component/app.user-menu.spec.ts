@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import type { MenuItemCommandEvent } from 'primeng/api';
+import { Tooltip } from 'primeng/tooltip';
 import { SessionStore } from '../../core/store/session.store';
 import { LogoutService } from '../../core/services/logout.service';
 import { UserMenu } from './app.user-menu';
@@ -18,20 +20,30 @@ describe('UserMenu', () => {
         store.setUser(null);
     });
 
-    it('renders the initials trigger for the current user', () => {
+    it('renders the user icon trigger for the current user', () => {
         store.setUser({ id: '1', username: 'aruiz', fullName: 'Ana Ruiz', roles: ['Admin'] });
         const fixture = TestBed.createComponent(UserMenu);
         fixture.detectChanges();
 
-        const trigger = (fixture.nativeElement as HTMLElement).querySelector('.user-menu-avatar');
-        expect(trigger?.textContent?.trim()).toBe('AR');
+        const trigger = (fixture.nativeElement as HTMLElement).querySelector('.pi-user');
+        expect(trigger).not.toBeNull();
     });
 
     it('renders nothing when there is no authenticated user', () => {
         const fixture = TestBed.createComponent(UserMenu);
         fixture.detectChanges();
 
-        expect((fixture.nativeElement as HTMLElement).querySelector('.user-menu-avatar')).toBeNull();
+        expect((fixture.nativeElement as HTMLElement).querySelector('button')).toBeNull();
+    });
+
+    it('gives the trigger an accessible name and a tooltip', () => {
+        store.setUser({ id: '1', username: 'aruiz', fullName: 'Ana Ruiz', roles: ['Admin'] });
+        const fixture = TestBed.createComponent(UserMenu);
+        fixture.detectChanges();
+
+        const trigger = (fixture.nativeElement as HTMLElement).querySelector('button');
+        expect(trigger?.getAttribute('aria-label')).toBe('Menú de usuario');
+        expect(fixture.debugElement.query(By.directive(Tooltip))).not.toBeNull();
     });
 
     it('logout item clears the session through the LogoutService', async () => {

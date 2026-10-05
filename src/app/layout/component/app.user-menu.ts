@@ -2,6 +2,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { Menu } from 'primeng/menu';
+import { Tooltip } from 'primeng/tooltip';
 import { SessionStore } from '@/app/core/store/session.store';
 import { LogoutService } from '@/app/core/services/logout.service';
 
@@ -17,7 +18,7 @@ function initialsOf(fullName: string): string {
 @Component({
     selector: 'app-user-menu',
     standalone: true,
-    imports: [Menu],
+    imports: [Menu, Tooltip],
     changeDetection: ChangeDetectionStrategy.OnPush,
     styles: [
         `
@@ -25,8 +26,11 @@ function initialsOf(fullName: string): string {
                 width: 2rem;
                 height: 2rem;
                 border-radius: 50%;
-                background: var(--primary-color);
-                color: var(--primary-contrast-color, #fff);
+                /* White chip on the primary bar — an emerald-on-emerald circle
+                   is invisible (1:1). Initials go brand-dark (color-mix keeps
+                   them tied to CORPORATE_PRIMARY) for ~5.4:1 on white. */
+                background: var(--topbar-chip, #ffffff);
+                color: var(--topbar-chip-content, color-mix(in srgb, var(--primary-color) 60%, #000));
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -38,8 +42,9 @@ function initialsOf(fullName: string): string {
     template: `
         @if (user(); as current) {
             <div class="relative">
-                <button type="button" class="layout-topbar-action" (click)="menu.toggle($event)" aria-label="User menu">
-                    <span class="user-menu-avatar">{{ initials() }}</span>
+                <button type="button" class="layout-topbar-action" (click)="menu.toggle($event)" aria-label="Menú de usuario" pTooltip="Menú de usuario" tooltipPosition="bottom" appendTo="body">
+                 <!--   <span class="user-menu-avatar">{{ initials() }}</span>-->
+                    <i class="pi pi-user"></i>
                 </button>
 
                 <p-menu #menu [popup]="true" [model]="menuItems()" appendTo="body">

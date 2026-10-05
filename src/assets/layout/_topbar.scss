@@ -9,6 +9,15 @@
     width: 100%;
     padding: 0 2rem;
     background-color: var(--primary-color);
+    // Design decision: glyphs on the primary bar are white, so hover and focus
+    // are white too. Honest caveat: white on emerald-500 measures 2.56:1 (below
+    // WCAG 1.4.11's 3:1). If AA is ever required, darken the bar to primary-700
+    // rather than changing the glyph color back.
+    --topbar-glyph: #ffffff;
+    --topbar-glyph-hover: rgb(255 255 255 / 0.18);
+    --topbar-chip: #ffffff;
+    --topbar-chip-content: color-mix(in srgb, var(--primary-color) 60%, #000);
+    --topbar-chip-hover: color-mix(in srgb, var(--topbar-chip) 88%, #000);
     transition: left var(--layout-section-transition-duration);
     display: flex;
     align-items: center;
@@ -24,7 +33,7 @@
         align-items: center;
         font-size: 1.5rem;
         border-radius: var(--content-border-radius);
-        color: var(--text-color);
+        color: var(--topbar-glyph);
         font-weight: 500;
         gap: 0.5rem;
 
@@ -32,9 +41,16 @@
             width: 3rem;
         }
 
+        --focus-ring-color: #ffffff;
+        --focus-ring-shadow: 0 0 0 var(--focus-ring-width) rgb(255 255 255 / 0.4);
+
         &:focus-visible {
             @include focused();
         }
+    }
+
+    .layout-topbar-logo-container > span {
+        color: var(--topbar-glyph);
     }
 
     .layout-topbar-action {
@@ -44,12 +60,15 @@
         border-radius: 50%;
         width: 2.5rem;
         height: 2.5rem;
-        color: var(--text-color);
+        color: var(--topbar-glyph);
         transition: background-color var(--element-transition-duration);
         cursor: pointer;
 
+        --focus-ring-color: #ffffff;
+        --focus-ring-shadow: 0 0 0 var(--focus-ring-width) rgb(255 255 255 / 0.4);
+
         &:hover {
-            background-color: var(--surface-hover);
+            background-color: var(--topbar-glyph-hover);
         }
 
         &:focus-visible {
@@ -66,8 +85,12 @@
         }
 
         &.layout-topbar-action-highlight {
-            background-color: var(--primary-color);
-            color: var(--primary-contrast-color);
+            background-color: var(--topbar-chip);
+            color: var(--topbar-chip-content);
+
+            &:hover {
+                background-color: var(--topbar-chip-hover);
+            }
         }
     }
 
