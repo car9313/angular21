@@ -117,5 +117,6 @@ html p-password.ng-invalid.ng-dirty .p-inputtext:enabled:focus {
 | Login — password | ✅ R1 (faltaba solo el override, ya global) |
 | `role-name-dialog` (roles) | ✅ R1 + R2 (era `p-error`; condición del mensaje unificada con R1 el 2026-10-07) |
 | `role-permissions-dialog` y `settings-detail` (mensaje de error de carga) | ✅ `p-error` → `text-red-500` |
+| `user-dialog` (usuarios, alta y edición) | ✅ R1–R4 (2026-10-07; contraseña con fortaleza por GETTER de `SettingsStore` + `passwordMatch` a nivel grupo; cubierto por `user-dialog.component.spec.ts`) |
 | Filtros compartidos (`filter-input`, `search`, `async-select`) | N/A — no son formularios con reglas de negocio |
-| Próximos: pantallas **usuarios** y **auditorías** (Fase 2.5 residual) | Aplicar este checklist desde el día 1 |
+| Próximo: pantalla **auditorías** (Fase 2.5 residual, read-only sin formularios) | N/A — no tiene formularios con reglas de negocio |
