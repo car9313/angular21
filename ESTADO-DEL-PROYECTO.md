@@ -115,20 +115,20 @@ Stack fijado en 21, demos de Sakai eliminadas, `angular.json` saneado (builder `
 3. **`has-permission.directive`** — ✅ resuelto con el ítem 1 (contexto `{ ok }` en `createEmbeddedView`).
 4. ~~Verificar 2.2 y luego Fase 2.3 → 2.6~~ — ✅ todas las sub-fases de Fase 2 completadas (2.0→2.6).
 5. **Fase 2.5 residual**: pantallas de usuarios y auditorías (roles ✅ completo; **configuración ✅ 2026-10-05**, ver §4 fila 2.5). ⏳ En curso 2026-10-05 — ver "Decisiones — residual Fase 2.5" al final de este §5.
-6. **Fase 3**: `withServerTable` (feature propia de **lectura** con tests: stale responses, page cache; ver requisito de diseño abajo) + **`withServerTableWrites`** (escrituras, separable) + shared UI (tabla, toolbar, filtros, async-select, skeletons) + catálogos con `httpResource`.
+6. **Fase 3**: `withServerTable` (feature propia de **lectura** con tests: stale responses; ver requisito de diseño abajo) + **`withServerTableWrites`** (escrituras, separable) + shared UI (tabla, toolbar, filtros, async-select, skeletons) + catálogos con `httpResource`.
 7. **Fase 4**: screen piloto end-to-end validando el patrón completo.
 8. Actualizar `ESTADO-DEL-PROYECTO.md` al cierre de cada bloque (⚠️ este doc se desactualizó durante 2026-09-30; actualizado 2026-10-01).
 
 ### Decisiones — residual Fase 2.5 (usuarios + auditorías) y Fase 3 (2026-10-05)
 
-**Estrategia de abstracción (consenso 2026-10-05, tras analizar `docs/ver.md`):** un único `withServerTable` monolítico era **demasiado**. La abstracción de lista se **difiere a Fase 3** y se parte en dos features componibles, no en una gigante:
+**Estrategia de abstracción (consenso 2026-10-05, revisado):** un único `withServerTable` monolítico era **demasiado**. Se parte en dos features componibles y — a diferencia del consenso inicial de "diferir a Fase 3" — **se construyen AHORA antes que usuarios/auditorías**, porque hay 3 stores de listado (roles + usuarios + auditorías) y la abstracción se escribe una sola vez en vez de copiar la composición tres veces. Orden: ① construir `withServerTable` + `withServerTableWrites` con tests ✅ (2026-10-07), ② migrar `RoleListStore` (test bed que valida la abstracción antes de apostarle usuarios/auditorías) ✅ (2026-10-07), ③ Usuarios delgado, ④ Auditorías delgado (sin writes).
 
-- **`withServerTable` = feature de LECTURA (base de la grilla)**: query + entidades + paginación (`pag`/`sort`/`filter`) + `loading`/`meta` + stale responses + page cache + selección. Sin `saving`, sin `create/update/delete`. La compone todo listado, lea o escriba.
-- **`withServerTableWrites` (o `withCrudWrites`) = feature de ESCRITURA separable**: `saving` + `create/update/deleteAndReload` (+ optimizaciones custom como reset). Solo la componen pantallas CRUD (Usuarios). Una pantalla read-only (Auditorías) **nunca** la compone → no arrastra escrituras ni estado de escritura.
+> **Gates de ①+② (2026-10-07):** lint 0 · **181/181 tests** (36 archivos; +8 del spec de features) · build OK (warning de presupuesto inicial 1.06 MB preexistente: budget warning 1 MB / error 5 MB; los features van al chunk lazy `roles-routes`). `RoleListStore` quedó delgado: 5 composiciones (lectura + escritura + persistencia + modal + acciones de modales).
 
-**Mientras tanto (bloque actual), la composición actual ya separa lectura de escritura 1:1, sin tocar código de Fase 3** (cuando Fase 3 aterrice, se aspira a `withServerTable`/`withServerTableWrites` sin cambio de comportamiento):
-- `AuditListStore` compone solo lectura: `withEntities`/`withQuery`/`withListStatus`/`withFilters`/`withModal('detail')`/`withSelection`. Sin `saving`, sin writes.
-- `UserListStore` compone las mismas de lectura **+** `withState({saving})` **+** métodos de escritura (`create/update/delete/resetPasswordAndReload`).
+- **`withServerTable` = feature de LECTURA (base de la grilla)**: query + entidades + paginación (`pag`/`sort`/`filter`) + `loading`/`meta` + stale responses (via `switchMap`) + selección + coordinadores de recarga. Sin `saving`, sin `create/update/delete`. La compone todo listado, lea o escriba.
+- **`withServerTableWrites` (escritura separable)**: `saving` + `create/update/deleteAndReload` que recargan la query actual. Solo pantallas CRUD (Usuarios/Roles). Una pantalla read-only (Auditorías) **nunca** la compone.
+- **Sin page cache** (decisión 2026-10-07): se construyó y se **eliminó** antes de migrar roles — la persistencia de filtros (`withFiltersPersistence`) ya cubre el caso real, el store se recrea en cada navegación (la caché moriría antes de ser útil en el escenario que la justificaría) y añadía complejidad (`serializeQuery`, invalidación, `clearCache`) sin beneficio materializable.
+- `withFiltersPersistence` (clave por feature), `withModal` (modo de pantalla) y los coordinadores de modales específicos quedan compuestos aparte, por store.
 
 **Alcances decididos:**
 - **Usuarios** (`/api/users`, recurso `User`): listado (búsqueda libre) + **CRUD** + detalle + acción **reset password** por fila. Create `{userName,fullName,password,passwordConfirmation,roleIds}`; update `{fullName,password?,passwordConfirmation?,roleIds}`; `POST /{id}/reset-password`. Columnas de la tabla: **Usuario · Nombre** (sin ID, §9.3). Catálogo de roles en el diálogo vía `RoleRepository.list()` (fetch manual, NO `httpResource` aún).
