@@ -39,11 +39,12 @@ Siempre con `[ngClass]`, condición **`invalid && (dirty || touched)`**, y las d
 ### R2 — Mensaje de error con color propio
 
 ```html
-@if (form.controls.name.invalid && form.controls.name.touched) {
+@if (form.controls.name.invalid && (form.controls.name.dirty || form.controls.name.touched)) {
     <small class="block mt-1 text-red-500 dark:text-red-400">El campo es requerido.</small>
 }
 ```
 
+- **MISMA condición que R1**: el mensaje y el borde rojo se revelan juntos (`invalid && (dirty || touched)`). Nunca el rojo sin su mensaje explicativo — esa asimetría es el defecto observado en `role-name-dialog` (2026-10-07): el borde salía con `dirty` pero el mensaje esperaba solo `touched`, así que "solo aparecía al hacer click fuera". Settings (4 secciones) y login usan la condición unificada.
 - **Nunca `class="p-error"`**: PrimeNG 21 no tiene ninguna regla CSS para `.p-error` → el texto queda sin color (hereda el normal).
 - El patrón Tailwind `text-red-500 dark:text-red-400` es el de todo el proyecto (login, settings).
 
@@ -114,7 +115,7 @@ html p-password.ng-invalid.ng-dirty .p-inputtext:enabled:focus {
 | Settings — 4 secciones (general/auth/password/user) | ✅ R1–R4 + override |
 | Login — username | ✅ corregido (`p-invalid` → R1) |
 | Login — password | ✅ R1 (faltaba solo el override, ya global) |
-| `role-name-dialog` (roles) | ✅ R1 + R2 (era `p-error`) |
+| `role-name-dialog` (roles) | ✅ R1 + R2 (era `p-error`; condición del mensaje unificada con R1 el 2026-10-07) |
 | `role-permissions-dialog` y `settings-detail` (mensaje de error de carga) | ✅ `p-error` → `text-red-500` |
 | Filtros compartidos (`filter-input`, `search`, `async-select`) | N/A — no son formularios con reglas de negocio |
 | Próximos: pantallas **usuarios** y **auditorías** (Fase 2.5 residual) | Aplicar este checklist desde el día 1 |

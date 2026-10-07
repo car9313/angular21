@@ -18,6 +18,11 @@ function nameField(fixture: ComponentFixture<RoleNameDialogComponent>): HTMLInpu
     return (fixture.nativeElement as HTMLElement).querySelector('#role-name') as HTMLInputElement;
 }
 
+function errorMessage(fixture: ComponentFixture<RoleNameDialogComponent>): string | null {
+    const el = (fixture.nativeElement as HTMLElement).querySelector('small.text-red-500');
+    return el?.textContent?.trim() ?? null;
+}
+
 /**
  * Regression: edit mode used to open the dialog with an EMPTY name field
  * because the form was never seeded from the `role` input.
@@ -58,5 +63,40 @@ describe('RoleNameDialogComponent', () => {
         fixture.detectChanges();
         TestBed.flushEffects();
         expect(nameField(fixture).value).toBe('Supervisor');
+    });
+
+    /**
+     * Regression (2026-10-07): el borde se ponía rojo con `dirty` pero el
+     * mensaje esperaba solo `touched` → "solo aparecía al hacer click fuera".
+     * R2 exige la MISMA condición que R1: `invalid && (dirty || touched)`.
+     */
+    it('reveals the error message as soon as the field is dirty-invalid, without blur', () => {
+        const fixture = TestBed.createComponent(RoleNameDialogComponent);
+        fixture.detectChanges();
+        TestBed.flushEffects();
+
+        const control = fixture.componentInstance['form'].controls.name;
+        control.setValue('x');
+        control.markAsDirty();
+        control.setValue(''); // queda inválida (required) y dirty, SIN tocarla (touched=false)
+        expect(control.touched).toBe(false);
+        fixture.detectChanges();
+
+        expect(errorMessage(fixture)).toBe('El nombre es requerido.');
+        // El par ng-invalid + ng-dirty es lo que enciende el borde rojo (R1).
+        expect(nameField(fixture).classList.contains('ng-invalid')).toBe(true);
+        expect(nameField(fixture).classList.contains('ng-dirty')).toBe(true);
+    });
+
+    it('keeps the message hidden while the field is pristine (fresh dialog)', () => {
+        const fixture = TestBed.createComponent(RoleNameDialogComponent);
+        fixture.detectChanges();
+        TestBed.flushEffects();
+
+        const control = fixture.componentInstance['form'].controls.name;
+        expect(control.invalid).toBe(true); // vacío + required, pero sin interactuar
+        expect(errorMessage(fixture)).toBeNull();
+        // Angular pone ng-invalid solo por estado; sin ng-dirty no hay borde rojo.
+        expect(nameField(fixture).classList.contains('ng-dirty')).toBe(false);
     });
 });

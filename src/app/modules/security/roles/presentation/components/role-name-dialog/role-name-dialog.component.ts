@@ -51,7 +51,7 @@ import { NotificationService } from '@/app/core/services/notification-services';
                         'ng-invalid ng-dirty': form.controls.name.invalid && (form.controls.name.dirty || form.controls.name.touched)
                     }"
                 />
-                @if (form.controls.name.invalid && form.controls.name.touched) {
+                @if (form.controls.name.invalid && (form.controls.name.dirty || form.controls.name.touched)) {
                     <small class="block mt-1 text-red-500 dark:text-red-400">El nombre es requerido.</small>
                 }
 
