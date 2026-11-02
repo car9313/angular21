@@ -1,7 +1,7 @@
 # Tareas pendientes — Sakai NG
 
 > **Última actualización: 2026-11-02** · Rama `feat/core-foundation`
-> Estado de referencia: Fase 2.5 completa · Fase 3 adelantada · **Nomencladores/Países cerrado** · gates ✅ 2026-11-02 (lint 0 · 429/429 · build OK).
+> Estado de referencia: Fase 2.5 completa · Fase 3 adelantada · **Nomencladores/Países cerrado** · gates ✅ 2026-11-02 (lint 0 · 451/451 · build OK).
 > Estados: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[!]` bloqueado. Prioridad: **P0** bloqueante, **P1** alta, **P2** media, **P3** baja.
 
 ---
@@ -51,9 +51,10 @@
 | BE-001 | `GET /api/v1/audits/actions-types` | [ ] | Shape confirmado (`{id,name}` vs `description`); ajustar `optionLabel` si aplica |
 | BE-002 | Auditorías end-to-end | [ ] | Listado, buscador, 6 filtros, persistencia 24 h, detalle con retry, paginación |
 | BE-003 | Usuarios end-to-end | [ ] | Create/update con password opcional, reset password, detalle |
-| BE-004 | Países end-to-end | [ ] | Listado, `getById`, create/update `{ name, code }`, `activate/{id}` y `DELETE /{id}` según contrato real |
-| BE-005 | Logout/refresh casing | [ ] | `{ refreshToken }` vs `{ RefreshToken }` confirmado y documentado |
-| BE-006 | Identity/permisos | [ ] | `user/current` y permisos aplanados verificados con backend real |
+| BE-004 | Países/provincias/municipios end-to-end | [ ] | Países: listado, `getById` por `code`, create/update `{ name, code }`; provincias/municipios: confirmados por Swagger el 2026-11-02, falta probar `activate`/`DELETE` y el alta real |
+| BE-005 | Logout/refresh casing | [x] | Swagger confirma `refreshToken` camelCase en `LogoutCommand` y `RefreshTokenCommand` (2026-11-02) |
+| BE-006 | Identity/permisos | [ ] | `user/current` y permisos aplanados verificados con backend real; unidad de `expiresIn` sin documentar en Swagger |
+| BE-007 | `provinceCode`/`provinceDescLong` en `MunicipalityDto` | [ ] | Pedido a backend: añadir ambos campos en `/api/municipality/all` y en el detalle; el mapper ya los acepta |
 
 ## 5. Deuda técnica y limpieza (P2)
 
@@ -72,7 +73,8 @@
 | TECH-011 | `loginSuccess`/`loginFailed`/`errorMessage` muertos | [ ] | Animaciones conectadas o código eliminado |
 | TECH-012 | `styleUrl` vs `styleUrls` en panel | [ ] | Usar `styleUrl` (Angular 21) |
 | TECH-013 | `MunicipalityDetailDialog` usa el skeleton de países | [ ] | Unificar `*-details-skeleton` (hoy tres clases con el mismo selector `app-country-details-skeleton`) |
-| BUG-001 | Diálogos de provincia/municipio envían `{ name, code }` y el repositorio espera `{ code, descShort, descLong }` | [x] | Formularios con Código + Acrónimo + Nombre y payload `{ code, descShort, descLong }`; falta confirmar el contrato real (BE-004) |
+| BUG-001 | Diálogos de provincia/municipio envían `{ name, code }` y el repositorio espera `{ code, descShort, descLong }` | [x] | Mappers DTO↔dominio; dominio `shortName`/`name`; payload `{ code, descShort, descLong }` confirmado por Swagger |
+| BUG-002 | El alta/edición de municipio no enviaba `provinceCode` | [x] | Selector `async-select-infinite` con `ProvinceRepository.listForSelect`, validación requerida y payload `{ code, descShort, descLong, provinceCode }` |
 | CERT-001 | `certification/requests` no está enrutado y la carpeta se llama `request-details.page.ts/` con `request-details.page.ts.ts` | [ ] | Renombrar, montar ruta y escribir specs reales antes de reactivar el módulo |
 
 ## 5.1. Testing: cobertura pendiente (2026-11-02)
@@ -96,10 +98,11 @@
 
 ## 7. Hecho recientemente
 
+- **2026-11-02 · Nomencladores desacoplados del wire:** mappers DTO↔dominio en países, provincias y municipios (`shortName`/`name`), `Country.id` eliminado, alta/edición de municipio con `provinceCode` obligatorio y selector `async-select-infinite` (cursor `Filter`/`Cursor`), columna Provincia en la tabla con fallback al catálogo y a `—`. Specs de mappers, repos, diálogo y página; gates 451/451. Pendiente BE-007 para que el DTO traiga `provinceCode`/`provinceDescLong`.
 - **2026-11-02 · Bloque de higiene y RBAC:** logs de depuración y `package-lock.json` fuera de git (solo pnpm), `securityRoutes` consolidado y renombrado con spec de navegación (`SEC-004`), payload de provincia/municipio alineado con el dominio (`BUG-001`: Código + Acrónimo + Nombre → `{ code, descShort, descLong }`) y contratos de Configuración documentados.
 - **2026-11-02 · Commit y push:** 14 commits por unidad lógica (`c74e28b..ead8b38`) y push a `origin/feat/core-foundation` (`68e8c6d..ead8b38`, 29 commits). Árbol limpio; gates verdes antes de subir.
-- **2026-11-02 · Suite reparada y ampliada:** 429/429 en 79 archivos, lint 0 y build OK. Se alinearon 12 specs con los contratos actuales (`code` como identidad en países/provincias/municipios, `selectId` explícito, dominio `descShort/descLong`, `pendingCode`, `PageChangeEvent`), se eliminaron dos `should create` huérfanos de certification, se añadió `src/test-setup.ts` (polyfill de storage) y specs nuevos para features de store, helpers, menú y repositorios de usuarios/roles/nomencladores. También se corrigieron copies: toggler del menú ligado a `isExpanded()`, "Detalle del país" → provincia/municipio, `municipios` en el empty state, mensajes de éxito de provincia, ids `province-*`/`municipality-*` y mensaje de error del store de municipios.
-- Fase 2.5 completa: roles, usuarios, auditorías y configuración (último verde: 2026-10-07, 227/227; superado el 2026-11-02 con 429/429).
+- **2026-11-02 · Suite reparada y ampliada:** 451/451 en 79 archivos, lint 0 y build OK. Se alinearon 12 specs con los contratos actuales (`code` como identidad en países/provincias/municipios, `selectId` explícito, dominio `descShort/descLong`, `pendingCode`, `PageChangeEvent`), se eliminaron dos `should create` huérfanos de certification, se añadió `src/test-setup.ts` (polyfill de storage) y specs nuevos para features de store, helpers, menú y repositorios de usuarios/roles/nomencladores. También se corrigieron copies: toggler del menú ligado a `isExpanded()`, "Detalle del país" → provincia/municipio, `municipios` en el empty state, mensajes de éxito de provincia, ids `province-*`/`municipality-*` y mensaje de error del store de municipios.
+- Fase 2.5 completa: roles, usuarios, auditorías y configuración (último verde: 2026-10-07, 227/227; superado el 2026-11-02 con 451/451).
 - `withServerTable` + `withServerTableWrites` construidos y migrados.
 - Restauración de sesión fail-open; `ConfigService` single-flight; `SessionReadyService` espera config.
 - Base documental creada el 2026-10-23.

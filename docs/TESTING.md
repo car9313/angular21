@@ -22,7 +22,7 @@ pnpm exec ng test --watch=false
 pnpm exec ng build
 ```
 
-- **Estado de referencia:** último verde conocido **429/429 (79 archivos)** el **2026-11-02**. El entorno carga `src/test-setup.ts` (definido en `vitest-base.config.ts`) para polyfillar `localStorage`/`sessionStorage`, que jsdom no expone sobre Node 26.
+- **Estado de referencia:** último verde conocido **451/451 (83 archivos)** el **2026-11-02**. El entorno carga `src/test-setup.ts` (definido en `vitest-base.config.ts`) para polyfillar `localStorage`/`sessionStorage`, que jsdom no expone sobre Node 26.
 
 ## 2. Pirámide y qué probar
 

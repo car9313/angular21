@@ -169,16 +169,23 @@ CountryPayload { name: string; code: string }
 
 | Método | Endpoint | Request | Response | Estado |
 |---|---|---|---|---|
-| GET | `/api/province/all`, `/api/municipality/all` | `QueryParams` | `PaginatedResponse<Province \| Municipality>` | ❓ por verificar |
-| GET | `/api/province/{code}`, `/api/municipality/{code}` | - | `{ code, descShort, descLong, active }` | ❓ por verificar |
-| POST | `/api/province`, `/api/municipality` | `{ code, descShort, descLong }` | entidad creada | ❓ por verificar |
-| PUT | `/api/province/{code}`, `/api/municipality/{code}` | `{ code, descShort, descLong }` | entidad actualizada | ❓ por verificar |
+| GET | `/api/province/all` | `QueryParams` (offset) | `PaginatedResponse<ProvinceDto>` | ✅ confirmado 2026-11-02 |
+| GET | `/api/municipality/all` | `QueryParams` (offset) | `PaginatedResponse<MunicipalityDto>` | ✅ confirmado 2026-11-02 |
+| GET | `/api/province` | `Filter`, `Cursor` | `{ objects, nextCursor }` | ✅ catálogo del select |
+| GET | `/api/municipality/province/{provinceCode}` | `Filter`, `Cursor` | `{ objects, nextCursor }` | ✅ documentado para filtro por provincia |
+| GET | `/api/province/{code}`, `/api/municipality/{code}` | — | `{ code, descShort, descLong, active }` | ✅ Swagger |
+| POST | `/api/province` | `{ code, descShort, descLong }` | `ProvinceDto` | ✅ Swagger |
+| POST | `/api/municipality` | `{ code, descShort, descLong, provinceCode }` | `MunicipalityDto` | ✅ Swagger |
+| PUT | `/api/province/{code}` | `{ code, descShort, descLong }` | `ProvinceDto` | ✅ Swagger |
+| PUT | `/api/municipality/{code}` | `{ code, descShort, descLong, provinceCode }` | `MunicipalityDto` | ✅ Swagger |
 | PUT | `/api/{province\|municipality}/activate/{code}` | `{}` | `void` | ❓ por verificar |
 | DELETE | `/api/province/{code}`, `/api/municipality/{code}` | `{}` | `void` | ❓ por verificar |
 
-- La identidad de estas entidades es `code` (no hay `id`); los formularios capturan Código, Acrónimo (`descShort`) y Nombre (`descLong`).
+- Identidad por `code` (no existe `id`). Los formularios capturan Código, Acrónimo (`descShort`) y Nombre (`descLong`); municipio además Provincia (`provinceCode`, obligatorio).
+- El frontend mapea wire → dominio (`shortName`/`name`) en `infrastructure/mappers`; ver ADR-014.
+- **BE-007 (pedido a backend):** añadir `provinceCode` y `provinceDescLong` a `MunicipalityDto` en `/all` y en el detalle. Sin ellos, editar un municipio obliga a reseleccionar la provincia y la tabla muestra `—`. El mapper ya acepta `provinceDescLong` o `provinceName`.
 - Permisos: `Nomenclators` con `Create`/`Read`/`Update`, igual que países.
-- **Pendiente (BE-004):** confirmar que el backend espera `descShort`/`descLong` en el alta y edición.
+- ~~BE-004~~: `descShort`/`descLong` confirmados en Swagger el 2026-11-02.
 
 ### 7.2 Configuración
 

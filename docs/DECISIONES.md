@@ -33,8 +33,9 @@
 | ADR-009 | `CorporatePreset` como fuente del color/radios; login derivado del primary | 2026-10-01 | vigente |
 | ADR-010 | `SessionReadyService` espera config; restauración fail-open | 2026-10-09 | vigente |
 | ADR-011 | Memoria documental en repo como fuente de verdad | 2026-10-23 | vigente |
-| ADR-012 | Países: CRUD sin borrado físico; todas las operaciones por `id` | 2026-10-23 | vigente |
+| ADR-012 | Países: CRUD sin borrado físico; operaciones por `id` | 2026-10-23 | reemplazada por ADR-014 (identidad por `code`) |
 | ADR-013 | Regla de reset de página: setters resetean `Page` a 1; `patchQuery`/`mergeQuery` nunca | 2026-10-27 | vigente |
+| ADR-014 | Nomencladores: identidad por `code`, mappers DTO↔dominio y `provinceCode` obligatorio | 2026-11-02 | vigente |
 
 ---
 
@@ -136,7 +137,7 @@
 ## ADR-012 — Países: CRUD sin borrado físico; todas las operaciones por `id`
 
 - **Fecha:** 2026-10-23
-- **Estado:** vigente
+- **Estado:** reemplazada por ADR-014 (la identidad pasó a `code` y se introdujeron mappers)
 - **Contexto:** el alcance de Nomencladores/Países quedó confirmado: crear, editar, ver detalle y activar/desactivar. La pantalla usa `id` para todas las operaciones: activación, desactivación, edición y detalle. El toggle de la tabla estaba cableado con `[(ngModel)]` mutando la entidad y sin llamada al backend.
 - **Decisión:**
   - No existe eliminación física: la baja de un país es su desactivación.
@@ -166,3 +167,17 @@
 - **Decisión:** crear una memoria documental en el repo con una sola fuente de verdad por tipo: `AGENTS.md`, `ESTADO`, `MEMORIA`, `PLAN-DIARIO`, `tareas-pendientes`, `PREFERENCIAS`, `DECISIONES`, `CONTRATOS-BACKEND` y `TESTING`. Los anexos históricos no son fuente de verdad.
 - **Consecuencias:** onboarding más rápido y continuidad entre sesiones; exige disciplina de actualización al cierre. La documentación se actualiza en el mismo flujo que el código.
 - **Enlaces:** `AGENTS.md`, `ESTADO-DEL-PROYECTO.md` §10, `docs/MEMORIA-PROYECTO.md`.
+
+## ADR-014 - Nomencladores: identidad por `code`, mappers DTO↔dominio y `provinceCode` obligatorio
+
+- **Fecha:** 2026-11-02
+- **Estado:** vigente
+- **Contexto:** el backend usa `code` como identidad de países, provincias y municipios (no hay `id`), nombra los campos como `descShort`/`descLong` y exige `provinceCode` al crear o actualizar un municipio. La UI estaba acoplada a esos nombres y el formulario de municipio no enviaba la provincia.
+- **Decisión:**
+  - El dominio usa nombres neutrales: `Country { code, name, active }`, `Province { code, shortName, name, active }` y `Municipality { code, shortName, name, active, provinceCode, provinceName }`. Se elimina `Country.id`.
+  - Cada nomenclador tiene DTOs con los nombres del wire y un mapper estático `toDomain` / `toWriteDto`; los repositorios mapean en el borde y stores/componentes solo ven dominio.
+  - El mapper de municipio acepta `provinceDescLong` o `provinceName` y deja `provinceCode`/`provinceName` en `null` si el backend aún no los envía.
+  - El formulario de municipio captura Código, Acrónimo, Nombre y Provincia (`provinceCode` requerido) y envía `{ code, descShort, descLong, provinceCode }`.
+  - El selector de provincia usa `app-async-select-infinite` con `ProvinceRepository.listForSelect` (`GET /api/province` con `Filter`/`Cursor`) y `findItemByValue` para preseleccionar.
+- **Consecuencias:** cambiar el casing del backend ya no toca componentes ni stores; la tabla de municipios muestra la provincia cuando el DTO la traiga y cae a `-` mientras tanto. Editar un municipio sin `provinceCode` en el detalle obliga a reseleccionar la provincia. Queda pendiente BE-007 (añadir `provinceCode`/`provinceDescLong` a `MunicipalityDto`).
+- **Enlaces:** `modules/nomenclators/*/infrastructure/{dtos,mappers}`, `docs/CONTRATOS-BACKEND.md` §7.1, `docs/tareas-pendientes.md` (BUG-001, BUG-002, BE-007).

@@ -1,7 +1,7 @@
 # Estado del Proyecto — Sakai NG (Angular 21)
 
 > Documento de continuidad. **Última actualización: 2026-11-02** · Rama: `feat/core-foundation`
-> **Última verificación real de gates: 2026-11-02** (lint 0 · 429/429 tests · build OK con warning de presupuesto 1.10 MB).
+> **Última verificación real de gates: 2026-11-02** (lint 0 · 451/451 tests · build OK con warning de presupuesto 1.10 MB).
 > Cualquier máquina: `git pull` + `pnpm install` (el lockfile está versionado) y correr los gates del final.
 > Memoria relacionada: `AGENTS.md`, `docs/MEMORIA-PROYECTO.md`, `docs/PLAN-DIARIO.md`, `docs/tareas-pendientes.md`, `docs/PREFERENCIAS-Y-REGLAS.md`, `docs/DECISIONES.md`, `docs/CONTRATOS-BACKEND.md`, `docs/TESTING.md`.
 
@@ -13,7 +13,7 @@
 - **Nomencladores/Países cerrado (2026-10-23; reconciliado 2026-10-27):** alta, edición, detalle y activar/desactivar (sin borrado físico), con permisos `Create`/`Read`/`Update` sobre `Nomenclators`. También quedó resuelto el menú duplicado, la ruta ASCII `paises` y el wildcard. En la reconciliación: `activate`/`deactivate` van por `id`, el toggle no es optimista y `withPendingKeys` (por `id`) quedó cubierto por spec. Pendiente la verificación real del contrato (BE-004).
 - **Árbol de trabajo sucio:** 99 entradas en `git status --short` (worktree + índice, con `AM`/`AD`); **15 commits locales sin push** a `origin/feat/core-foundation` (55 sobre `main`).
 - El índice git arrastra snapshots viejos (`AM`/`RM`): **re-stagear con paths explícitos** antes de cualquier commit.
-- **Gates verificados el 2026-11-02:** lint 0 · **429/429 tests (79 archivos)** · build OK (warning de presupuesto 1.10 MB, no bloquea). Reparados los 12 specs desalineados con los contratos actuales (`code` como identidad en países/provincias/municipios, `selectId` explícito, dominio `descShort/descLong`, `pendingCode`, `PageChangeEvent`), añadido `src/test-setup.ts` (polyfill de `localStorage` para jsdom sobre Node 26) y cubiertas las piezas nuevas con lógica: features de store, helpers, menú y repositorios de usuarios/roles/nomencladores.
+- **Gates verificados el 2026-11-02:** lint 0 · **451/451 tests (83 archivos)** · build OK (warning de presupuesto 1.10 MB, no bloquea). Reparados los 12 specs desalineados con los contratos actuales (`code` como identidad en países/provincias/municipios, `selectId` explícito, dominio `descShort/descLong`, `pendingCode`, `PageChangeEvent`), añadido `src/test-setup.ts` (polyfill de `localStorage` para jsdom sobre Node 26) y cubiertas las piezas nuevas con lógica: features de store, helpers, menú y repositorios de usuarios/roles/nomencladores.
 - **Hallazgos resueltos el 2026-10-23:** se eliminó `CountryDetails` roto y se reemplazó por `country-detail-dialog`; el CRUD de Países tiene diálogo único de alta/edición; "Países" quedó con una sola entrada; la ruta pasó a `paises` y el wildcard apunta a `/notfound`.
 - **Objetivo inmediato:** higiene git (re-stage por paths, logs, lockfile) y verificación de contratos contra backend (BE-004 y pendientes de auditorías/usuarios).
 
