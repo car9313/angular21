@@ -39,10 +39,10 @@
 |---|---|---|---|
 | SEC-001 | Quitar "Países" duplicado del menú | [x] | Una sola entrada, bajo Configuración > Nomencladores |
 | SEC-002 | Resolver duplicidad de "Configuración" | [x] | Hoja de Seguridad renombrada "Parámetros del sistema" |
-| SEC-003 | Consolidar rutas `seguridad` en `security.routes.ts` | [ ] | Una sola entrada `seguridad` con children; sin stub vacío |
-| SEC-004 | Test de navegación de las rutas de seguridad | [ ] | Cubre roles, usuarios, auditorías y configuración |
-| SEC-005 | Verificar recurso `Nomenclators` en backend | [ ] | Si no existe, ajustar `RESOURCES`/contrato en `CONTRATOS-BACKEND` |
-| SEC-006 | Revisar permiso de Configuración (`Update` vs `Read`) | [ ] | Coherente con menú y guard; documentado |
+| SEC-003 | Consolidar rutas `seguridad` en `security.routes.ts` | [x] | Una sola entrada `seguridad` con children y `securityRoutes` (typo `segurityRoutes` corregido); sin stub vacío |
+| SEC-004 | Test de navegación de las rutas de seguridad | [x] | `security.routes.spec.ts`: 4 features lazy, redirects, wildcard, resource/actions y title/breadcrumb por ruta |
+| SEC-005 | Verificar recurso `Nomenclators` en backend | [!] | Código consistente (menú, rutas y páginas usan `RESOURCES.Nomenclators`); falta confirmarlo con backend (BE-004) |
+| SEC-006 | Revisar permiso de Configuración (`Update` vs `Read`) | [x] | Menú, ruta y guard exigen `SecConfig`/`Update`; documentado en `CONTRATOS-BACKEND` |
 
 ## 4. Verificación contra backend (P1)
 
@@ -60,7 +60,7 @@
 | ID | Tarea | Estado | Criterio de aceptación |
 |---|---|---|---|
 | TECH-001 | `AuditMapper` inconsistente (`moment: string` vs `Date`) | [ ] | Tipo corregido y mapper usado o eliminado |
-| TECH-002 | `security.routes.ts` vacío | [ ] | Implementado o eliminado |
+| TECH-002 | `security.routes.ts` vacío | [x] | Implementado como tabla de children (`securityRoutes`) y cubierto por `security.routes.spec.ts` |
 | TECH-003 | `ConfirmActionService` sin uso | [ ] | Adoptado en pantallas CRUD o eliminado |
 | TECH-004 | `hasActiveFilters` duplicado (`withQuery`/`withFilters`) | [ ] | Una sola definición; sin warning de NgRx |
 | TECH-005 | `withServerTable` no resetea `meta` en error | [ ] | Estado de error consistente (meta vacía) |
@@ -72,7 +72,7 @@
 | TECH-011 | `loginSuccess`/`loginFailed`/`errorMessage` muertos | [ ] | Animaciones conectadas o código eliminado |
 | TECH-012 | `styleUrl` vs `styleUrls` en panel | [ ] | Usar `styleUrl` (Angular 21) |
 | TECH-013 | `MunicipalityDetailDialog` usa el skeleton de países | [ ] | Unificar `*-details-skeleton` (hoy tres clases con el mismo selector `app-country-details-skeleton`) |
-| BUG-001 | Diálogos de provincia/municipio envían `{ name, code }` y el repositorio espera `{ code, descShort, descLong }` | [ ] | Contrato verificado con backend y payload corregido (o interfaz ajustada) |
+| BUG-001 | Diálogos de provincia/municipio envían `{ name, code }` y el repositorio espera `{ code, descShort, descLong }` | [x] | Formularios con Código + Acrónimo + Nombre y payload `{ code, descShort, descLong }`; falta confirmar el contrato real (BE-004) |
 | CERT-001 | `certification/requests` no está enrutado y la carpeta se llama `request-details.page.ts/` con `request-details.page.ts.ts` | [ ] | Renombrar, montar ruta y escribir specs reales antes de reactivar el módulo |
 
 ## 5.1. Testing: cobertura pendiente (2026-11-02)
@@ -96,6 +96,7 @@
 
 ## 7. Hecho recientemente
 
+- **2026-11-02 · Bloque de higiene y RBAC:** logs de depuración y `package-lock.json` fuera de git (solo pnpm), `securityRoutes` consolidado y renombrado con spec de navegación (`SEC-004`), payload de provincia/municipio alineado con el dominio (`BUG-001`: Código + Acrónimo + Nombre → `{ code, descShort, descLong }`) y contratos de Configuración documentados.
 - **2026-11-02 · Commit y push:** 14 commits por unidad lógica (`c74e28b..ead8b38`) y push a `origin/feat/core-foundation` (`68e8c6d..ead8b38`, 29 commits). Árbol limpio; gates verdes antes de subir.
 - **2026-11-02 · Suite reparada y ampliada:** 429/429 en 79 archivos, lint 0 y build OK. Se alinearon 12 specs con los contratos actuales (`code` como identidad en países/provincias/municipios, `selectId` explícito, dominio `descShort/descLong`, `pendingCode`, `PageChangeEvent`), se eliminaron dos `should create` huérfanos de certification, se añadió `src/test-setup.ts` (polyfill de storage) y specs nuevos para features de store, helpers, menú y repositorios de usuarios/roles/nomencladores. También se corrigieron copies: toggler del menú ligado a `isExpanded()`, "Detalle del país" → provincia/municipio, `municipios` en el empty state, mensajes de éxito de provincia, ids `province-*`/`municipality-*` y mensaje de error del store de municipios.
 - Fase 2.5 completa: roles, usuarios, auditorías y configuración (último verde: 2026-10-07, 227/227; superado el 2026-11-02 con 429/429).

@@ -165,6 +165,25 @@ CountryPayload { name: string; code: string }
 - Confirmar el recurso RBAC `Nomenclators` (si el backend usa otro nombre, ajustar `RESOURCES`).
 - Confirmar si `create`/`update` aceptan `active` además de `name` y `code`.
 
+### 7.1 Provincias y municipios
+
+| Método | Endpoint | Request | Response | Estado |
+|---|---|---|---|---|
+| GET | `/api/province/all`, `/api/municipality/all` | `QueryParams` | `PaginatedResponse<Province \| Municipality>` | ❓ por verificar |
+| GET | `/api/province/{code}`, `/api/municipality/{code}` | - | `{ code, descShort, descLong, active }` | ❓ por verificar |
+| POST | `/api/province`, `/api/municipality` | `{ code, descShort, descLong }` | entidad creada | ❓ por verificar |
+| PUT | `/api/province/{code}`, `/api/municipality/{code}` | `{ code, descShort, descLong }` | entidad actualizada | ❓ por verificar |
+| PUT | `/api/{province\|municipality}/activate/{code}` | `{}` | `void` | ❓ por verificar |
+| DELETE | `/api/province/{code}`, `/api/municipality/{code}` | `{}` | `void` | ❓ por verificar |
+
+- La identidad de estas entidades es `code` (no hay `id`); los formularios capturan Código, Acrónimo (`descShort`) y Nombre (`descLong`).
+- Permisos: `Nomenclators` con `Create`/`Read`/`Update`, igual que países.
+- **Pendiente (BE-004):** confirmar que el backend espera `descShort`/`descLong` en el alta y edición.
+
+### 7.2 Configuración
+
+- Recurso RBAC `SecConfig` con acción **`Update`** (no `Read`) en menú, ruta y guard; con `Read` el ítem quedaba oculto.
+
 ## 8. Errores y estados
 
 - `ProblemDetails` (4xx/5xx): usar `detail` o `message`; el detalle técnico solo en consola.
