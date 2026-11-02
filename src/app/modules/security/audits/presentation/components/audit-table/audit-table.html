@@ -1,0 +1,124 @@
+<p-table
+    [value]="items()"
+    [first]="first()"
+    [rows]="pageSize()"
+    [totalRecords]="totalRecords()"
+    [columns]="columns()"
+    [loading]="loading()"
+    [lazy]="true"
+    [paginator]="true"
+    [rowHover]="true"
+    size="small"
+    [showCurrentPageReport]="true"
+    [rowsPerPageOptions]="visibleRowsPerPageOptions()"
+    [tableStyle]="{ 'min-width': '100%' }"
+    currentPageReportTemplate="Mostrando del {first} al {last} de {totalRecords} auditorías"
+    selectionMode="single"
+    dataKey="id"
+    (onLazyLoad)="onLazyLoad($event)"
+    (onRowSelect)="onRowSelect($event.data)"
+>
+    <!-- ─── Header ──────────────────────────────────────────────── -->
+    <ng-template #header>
+        <tr>
+            @for (col of columns(); track col.field) {
+                <th
+                    [pSortableColumn]="col.sortable ? col.field : undefined"
+                    [ngClass]="col.className"
+                >
+                    {{ col.header }}
+                    @if (col.sortable) {
+                        <p-sortIcon [field]="col.field" />
+                    }
+                </th>
+            }
+            @if (hasActionColumn()) {
+                <th style="min-width: 10%">Acciones</th>
+            }
+        </tr>
+    </ng-template>
+
+    <!-- ─── Body ────────────────────────────────────────────────── -->
+    <ng-template #body let-audit>
+        <tr [pSelectableRow]="audit">
+            @for (col of columns(); track col.field) {
+                <td [ngClass]="col.className">
+                    @if (col.cellTemplate) {
+                        <span [innerHTML]="col.cellTemplate(audit)"></span>
+                    } @else {
+                        {{ audit[col.field] }}
+                    }
+                </td>
+            }
+
+            @if (menuFor(audit).length > 0) {
+                <td>
+                    <p-menu
+                        #menu
+                        [model]="menuFor(audit)"
+                        [popup]="true"
+                        appendTo="body"
+                        (onShow)="onMenuShow(audit)"
+                        (onHide)="onMenuHide(audit)"
+                    />
+
+                    <p-button
+                        [text]="true"
+                        [rounded]="true"
+                        severity="secondary"
+                        [ariaLabel]="'Acciones de la auditoría de ' + audit.userName"
+                        pTooltip="Listado de Acciones"
+                        tooltipPosition="top"
+                        [class.active]="isMenuOpen(audit)"
+                        (click)="menu.toggle($event)"
+                    >
+                        <i class="pi pi-ellipsis-v"></i>
+                    </p-button>
+                </td>
+            }
+        </tr>
+    </ng-template>
+
+    <!-- ─── Loading skeleton ───────────────────────────────────── -->
+    <ng-template #loadingbody>
+        @for (row of skeletonRows; track row) {
+            <tr>
+                @for (col of columns(); track col.field) {
+                    <td><p-skeleton [style]="{ height: '20px' }" /></td>
+                }
+                @if (hasActionColumn()) {
+                    <td><p-skeleton [style]="{ height: '20px' }" /></td>
+                }
+            </tr>
+        }
+    </ng-template>
+
+    <!-- ─── Empty / error state ─────────────────────────────────── -->
+    <ng-template #emptymessage>
+        <tr>
+            <td
+                [attr.colspan]="columns().length + (hasActionColumn() ? 1 : 0)"
+                class="empty-message"
+            >
+                @if (error()) {
+                    <app-empty-state
+                        type="error"
+                        title="Error de carga de datos"
+                        description="No se pudieron cargar las auditorías. Por favor, intente nuevamente."
+                    />
+                } @else if (searchText()) {
+                    <app-empty-state
+                        icon="pi pi-search"
+                        title="Sin resultados"
+                        [description]="emptySearchDescription()"
+                    />
+                } @else {
+                    <app-empty-state
+                        title="No hay auditorías todavía"
+                        description="Las auditorías aparecen aquí a medida que los usuarios utilizan el sistema."
+                    />
+                }
+            </td>
+        </tr>
+    </ng-template>
+</p-table>

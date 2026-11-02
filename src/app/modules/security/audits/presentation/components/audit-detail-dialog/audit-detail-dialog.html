@@ -1,0 +1,58 @@
+<p-dialog
+    [visible]="store.modalMode() === 'detail'"
+    (visibleChange)="onVisibleChange($event)"
+    (onHide)="cancelled.emit()"
+    [maximizable]="true"
+    [modal]="true"
+    [header]="'Detalle de auditoría'"
+    [focusOnShow]="true"
+    [style]="{ width: '800px' }"
+    [contentStyle]="{ 'max-height': '70vh', overflow: 'auto' }"
+>
+    @if (loading()) {
+        <app-view-audit-skeleton />
+    } @else if (errorMsg()) {
+        <div class="flex flex-column justify-content-center align-items-center p-5 error-container">
+            <i class="pi pi-exclamation-triangle text-error" style="font-size: 3rem"></i>
+            <p class="mt-3 text-center">{{ errorMsg() }}</p>
+            <p-button label="Reintentar" icon="pi pi-refresh" (click)="retryLoad()" class="mt-3" />
+        </div>
+    } @else if (audit(); as a) {
+        <div class="flex flex-col gap-4">
+            <div class="grid grid-cols-2 gap-x-8 gap-y-3">
+                <div class="flex gap-2 items-center">
+                    <span class="font-bold">ID:</span>
+                    <p class="dark:text-gray-300 text-gray-600 whitespace-pre-wrap">{{ a.id }}</p>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <span class="font-bold">Usuario:</span>
+                    <p class="dark:text-gray-300 text-gray-600 whitespace-pre-wrap">{{ a.userName ?? 'Sin descripción' }}</p>
+                </div>
+                <div class="flex gap-2 items-center col-span-2">
+                    <span class="font-bold">Nombre:</span>
+                    <p class="dark:text-gray-300 text-gray-600 whitespace-pre-wrap">{{ a.userFullName ?? 'Sin descripción' }}</p>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <span class="font-bold">Dirección IP:</span>
+                    <p class="dark:text-gray-300 text-gray-600 whitespace-pre-wrap">{{ a.userHostAddress ?? 'Sin descripción' }}</p>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <span class="font-bold">Fecha:</span>
+                    <p class="dark:text-gray-300 text-gray-600 whitespace-pre-wrap">{{ a.moment | date: 'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+                <div class="flex gap-2 items-center col-span-2">
+                    <span class="font-bold">Acción:</span>
+                    <p class="dark:text-gray-300 text-gray-600 whitespace-pre-wrap">{{ a.actionDescription ?? 'Sin descripción' }}</p>
+                </div>
+                <div class="flex gap-2 items-center col-span-2">
+                    <span class="font-bold">Mensaje:</span>
+                    <p class="dark:text-gray-300 text-gray-600 whitespace-pre-wrap">{{ a.message ?? 'Sin descripción' }}</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <ng-template #footer>
+        <p-button label="Cerrar" icon="pi pi-times" (click)="cancelled.emit()" />
+    </ng-template>
+</p-dialog>

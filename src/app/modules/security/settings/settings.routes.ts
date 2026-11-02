@@ -10,7 +10,7 @@ import { ACTIONS } from '../../../core/constants/actions';
  */
 export default [
     {
-        path: 'configuracion',
+        path: '',
         component: SettingsPage,
         data: { title: 'Configuración', breadcrumb: 'Configuración', resource: RESOURCES.SecConfig, actions: [ACTIONS.Update] }
     }
