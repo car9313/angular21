@@ -1,7 +1,11 @@
 // core/store/features/with-query.feature.ts
 import { signalStoreFeature, withState, withComputed, withMethods, patchState } from '@ngrx/signals';
 import { computed } from '@angular/core';
-import { QueryParams } from '../../interfaces/query-params';
+import { QueryPatch, QueryParams, mergeQuery } from '../../interfaces/query-params';
+
+// Regla de reset de página: los setters que cambian el CONJUNTO de resultados
+// (setSearch, setFilters, setSort, y applyFilters/clearFilters de withFilters)
+// resetean Page a 1. `patchQuery` NUNCA la resetea (parches quirúrgicos, ej. URL).
 
 export const DEFAULT_QUERY: QueryParams = {
     search: { SearchText: '', Strict: false },
@@ -49,6 +53,20 @@ export function withQuery() {
                         filter: filters,
                         pag: { ...state.query.pag, Page: 1 }
                     }
+                }));
+            },
+            setSort(sort: QueryParams['sort']): void {
+                patchState(store, (state) => ({
+                    query: {
+                        ...state.query,
+                        sort,
+                        pag: { ...state.query.pag, Page: 1 }
+                    }
+                }));
+            },
+            patchQuery(patch: QueryPatch): void {
+                patchState(store, (state) => ({
+                    query: mergeQuery(state.query, patch)
                 }));
             },
             clearQueryParams(): void {

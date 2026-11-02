@@ -1,52 +1,42 @@
 // core/store/features/with-server-table.feature.ts
 import { signalStoreFeature, withComputed, withMethods, patchState } from '@ngrx/signals';
-import { setAllEntities, withEntities } from '@ngrx/signals/entities';
+import { setAllEntities, withEntities, type EntityId, type SelectEntityId } from '@ngrx/signals/entities';
 import { computed } from '@angular/core';
 import { EMPTY, Observable, catchError, switchMap, tap } from 'rxjs';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 
-import { QueryParams } from '../../interfaces/query-params';
+import { QueryParams, type QueryPatch } from '../../interfaces/query-params';
 import { PaginatedResponse } from '../../interfaces/paginated-response';
 import { withQuery } from './with-query.feature';
 import { withListStatus } from './with-list-status.feature';
 import { withFilters } from './with-filters.feature';
 import { withSelection } from './with-selection.feature';
 
-/**
- * Repositorio mínimo que una grilla de servidor necesita para leer.
- * Quien tenga más operaciones (getById, etc.) las declara en su feature de
- * dominio; aquí solo vive el listado paginado que `load` consume.
- */
 export interface ServerTableRepository<E> {
     list(query: QueryParams): Observable<PaginatedResponse<E>>;
 }
 
-export interface WithServerTableConfig<E> {
-    /** Fábrica del repositorio (para poder `inject()` dentro del store). */
+// ─── selectId ────────────────────────────────────────────────────────────────
+type EntityIdKey<E> = {
+    [K in keyof E]: E[K] extends EntityId ? K : never;
+}[keyof E];
+
+type SelectId<E> = SelectEntityId<E> | EntityIdKey<E>;
+
+export interface WithServerTableConfig<E extends object> {
     repository: () => ServerTableRepository<E>;
-    /** Mensaje usado cuando el error no es un `Error` con `.message`. */
     errorMessage?: string;
+    /** nombre de campo o función. Default: `e.id` si E lo tiene. */
+    selectId: SelectId<E>;
 }
 
 export const DEFAULT_TABLE_ERROR = 'No se pudieron cargar los datos.';
 
-/**
- * Feature de LECTURA para una grilla de servidor: la base reutilizable de
- * cualquier pantalla de listado (lea o escriba).
- *
- * Compone `withEntities`, `withQuery`, `withListStatus`, `withFilters` y
- * `withSelection`, y aporta:
- * - `load = rxMethod<QueryParams>` con `switchMap` (cancela requests en
- *   flight → stale responses nunca pisan el estado de la última query).
- * - Coordinadores de recarga (`applyFiltersAndReload`, `clearFiltersAndReload`,
- *   `setSearchAndReload`, `setPageAndReload`, `setPageSizeAndReload`, `reload`).
- * - Computed `isEmpty` y `selectedItem`.
- *
- * NO incluye escrituras ni `saving`: eso lo aporta `withServerTableWrites`
- * (solo pantallas CRUD).
- */
-export function withServerTable<E extends { id: Id }, Id extends string | number>(config: WithServerTableConfig<E>) {
+export function withServerTable<E extends object, Id extends EntityId = EntityId>(config: WithServerTableConfig<E>) {
     const { repository, errorMessage = DEFAULT_TABLE_ERROR } = config;
+
+    // string | función → SelectEntityId<E>
+    const selectId: SelectEntityId<E> = typeof config.selectId === 'function' ? config.selectId : config.selectId ? (e) => e[config.selectId as EntityIdKey<E>] as EntityId : (e) => (e as { id: EntityId }).id;
 
     return signalStoreFeature(
         withEntities<E>(),
@@ -65,57 +55,56 @@ export function withServerTable<E extends { id: Id }, Id extends string | number
 
         withMethods((store) => {
             const repo = repository();
+            const load = rxMethod<void>((trigger$) =>
+                trigger$.pipe(
+                    switchMap(() => {
+                        store._setLoading(true);
+                        return repo.list(store.query()).pipe(
+                            tap((page) => {
+                                patchState(store, setAllEntities(page.objects ?? [], { selectId }));
+                                store._setMeta(page.meta);
+                                store._setLoading(false);
+                            }),
+                            catchError((error: unknown) => {
+                                patchState(store, setAllEntities<E>([], { selectId }));
+                                store._setError(error instanceof Error ? error.message : errorMessage);
+                                return EMPTY;
+                            })
+                        );
+                    })
+                )
+            );
 
             return {
-                load: rxMethod<QueryParams>((query$) =>
-                    query$.pipe(
-                        switchMap((query) => {
-                            store._setLoading(true);
-                            return repo.list(query).pipe(
-                                tap((page) => {
-                                    patchState(store, setAllEntities(page.objects ?? []));
-                                    store._setMeta(page.meta);
-                                    store._setLoading(false);
-                                }),
-                                catchError((error: unknown) => {
-                                    patchState(store, setAllEntities<E>([]));
-                                    store._setError(error instanceof Error ? error.message : errorMessage);
-                                    return EMPTY;
-                                })
-                            );
-                        })
-                    )
-                ),
+                load: () => load(),
 
-                /** Recarga la query actual. */
-                reload(): void {
-                    this.load(store.query());
-                },
-
-                // ─── Coordinadores de lectura ───────────────────────────────
                 applyFiltersAndReload(formValues: Record<string, unknown>): void {
                     store.applyFilters(formValues);
-                    this.load(store.query());
+                    load();
                 },
-
                 clearFiltersAndReload(): void {
                     store.clearFilters();
-                    this.load(store.query());
+                    load();
                 },
-
                 setSearchAndReload(text: string): void {
                     store.setSearch(text);
-                    this.load(store.query());
+                    load();
                 },
-
                 setPageAndReload(page: number): void {
                     store.setPage(page);
-                    this.load(store.query());
+                    load();
                 },
-
                 setPageSizeAndReload(pageSize: number): void {
                     store.setPageSize(pageSize);
-                    this.load(store.query());
+                    load();
+                },
+                setSortAndReload(sort: QueryParams['sort']): void {
+                    store.setSort(sort);
+                    load();
+                },
+                applyQueryAndReload(patch: QueryPatch): void {
+                    store.patchQuery(patch);
+                    load();
                 }
             };
         })
