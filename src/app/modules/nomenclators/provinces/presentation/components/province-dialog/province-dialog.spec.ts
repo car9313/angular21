@@ -45,23 +45,25 @@ describe('ProvinceDialog', () => {
         TestBed.flushEffects();
     });
 
-    it('pre-fills name and code when editing', () => {
+    it('pre-fills code, short name and name when editing', () => {
         fixture.componentRef.setInput('province', PINAR);
         fixture.detectChanges();
         TestBed.flushEffects();
 
-        expect(input(fixture, 'province-name').value).toBe('Pinar del Río');
         expect(input(fixture, 'province-code').value).toBe('PR');
+        expect(input(fixture, 'province-short').value).toBe('PRI');
+        expect(input(fixture, 'province-name').value).toBe('Pinar del Río');
     });
 
-    it('creates a trimmed province with name and code', () => {
+    it('creates a trimmed province with the domain payload', () => {
         const form = component['form'];
-        form.controls.name.setValue('  Pinar del Río  ');
         form.controls.code.setValue('  PR  ');
+        form.controls.descShort.setValue('  PRI  ');
+        form.controls.descLong.setValue('  Pinar del Río  ');
 
         component['onSubmit']();
 
-        expect(store.createAndReload).toHaveBeenCalledWith({ name: 'Pinar del Río', code: 'PR' });
+        expect(store.createAndReload).toHaveBeenCalledWith({ code: 'PR', descShort: 'PRI', descLong: 'Pinar del Río' });
         expect(store.updateAndReload).not.toHaveBeenCalled();
     });
 
@@ -71,42 +73,46 @@ describe('ProvinceDialog', () => {
         TestBed.flushEffects();
 
         const form = component['form'];
-        form.controls.name.setValue('Pinar del Río Norte');
         form.controls.code.setValue('PRN');
+        form.controls.descShort.setValue('PRN');
+        form.controls.descLong.setValue('Pinar del Río Norte');
 
         component['onSubmit']();
 
-        expect(store.updateAndReload).toHaveBeenCalledWith('PR', { name: 'Pinar del Río Norte', code: 'PRN' });
+        expect(store.updateAndReload).toHaveBeenCalledWith('PR', { code: 'PRN', descShort: 'PRN', descLong: 'Pinar del Río Norte' });
         expect(store.createAndReload).not.toHaveBeenCalled();
     });
 
-    it('reveals both required errors and does not persist an invalid form', () => {
+    it('reveals the three required errors and does not persist an invalid form', () => {
         component['onSubmit']();
         fixture.detectChanges();
 
         expect(store.createAndReload).not.toHaveBeenCalled();
-        expect(component['form'].controls.name.touched).toBe(true);
         expect(component['form'].controls.code.touched).toBe(true);
-        expect(errors(fixture)).toEqual(['El nombre es requerido.', 'El código es requerido.']);
+        expect(component['form'].controls.descShort.touched).toBe(true);
+        expect(component['form'].controls.descLong.touched).toBe(true);
+        expect(errors(fixture)).toEqual(['El código es requerido.', 'El acrónimo es requerido.', 'El nombre es requerido.']);
     });
 
     it('rejects whitespace-only values even though they satisfy required', () => {
         const form = component['form'];
-        form.controls.name.setValue('   ');
         form.controls.code.setValue('PR');
+        form.controls.descShort.setValue('   ');
+        form.controls.descLong.setValue('Pinar del Río');
 
         component['onSubmit']();
 
         expect(store.createAndReload).not.toHaveBeenCalled();
-        expect(form.controls.name.value).toBe('');
-        expect(form.controls.name.touched).toBe(true);
+        expect(form.controls.descShort.value).toBe('');
+        expect(form.controls.descShort.touched).toBe(true);
     });
 
     it('emits saved after a successful create', () => {
         const saved = vi.fn();
         component.saved.subscribe(saved);
-        component['form'].controls.name.setValue('Pinar del Río');
         component['form'].controls.code.setValue('PR');
+        component['form'].controls.descShort.setValue('PRI');
+        component['form'].controls.descLong.setValue('Pinar del Río');
 
         component['onSubmit']();
 

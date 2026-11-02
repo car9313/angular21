@@ -45,23 +45,25 @@ describe('MunicipalityDialog', () => {
         TestBed.flushEffects();
     });
 
-    it('pre-fills name and code when editing', () => {
+    it('pre-fills code, short name and name when editing', () => {
         fixture.componentRef.setInput('municipality', CONSOLACION);
         fixture.detectChanges();
         TestBed.flushEffects();
 
-        expect(input(fixture, 'municipality-name').value).toBe('Consolación del Sur');
         expect(input(fixture, 'municipality-code').value).toBe('MC1');
+        expect(input(fixture, 'municipality-short').value).toBe('CON');
+        expect(input(fixture, 'municipality-name').value).toBe('Consolación del Sur');
     });
 
-    it('creates a trimmed municipality with name and code', () => {
+    it('creates a trimmed municipality with the domain payload', () => {
         const form = component['form'];
-        form.controls.name.setValue('  Consolación del Sur  ');
         form.controls.code.setValue('  MC1  ');
+        form.controls.descShort.setValue('  CON  ');
+        form.controls.descLong.setValue('  Consolación del Sur  ');
 
         component['onSubmit']();
 
-        expect(store.createAndReload).toHaveBeenCalledWith({ name: 'Consolación del Sur', code: 'MC1' });
+        expect(store.createAndReload).toHaveBeenCalledWith({ code: 'MC1', descShort: 'CON', descLong: 'Consolación del Sur' });
         expect(store.updateAndReload).not.toHaveBeenCalled();
     });
 
@@ -71,42 +73,46 @@ describe('MunicipalityDialog', () => {
         TestBed.flushEffects();
 
         const form = component['form'];
-        form.controls.name.setValue('Consolación Norte');
         form.controls.code.setValue('MC2');
+        form.controls.descShort.setValue('CON2');
+        form.controls.descLong.setValue('Consolación Norte');
 
         component['onSubmit']();
 
-        expect(store.updateAndReload).toHaveBeenCalledWith('MC1', { name: 'Consolación Norte', code: 'MC2' });
+        expect(store.updateAndReload).toHaveBeenCalledWith('MC1', { code: 'MC2', descShort: 'CON2', descLong: 'Consolación Norte' });
         expect(store.createAndReload).not.toHaveBeenCalled();
     });
 
-    it('reveals both required errors and does not persist an invalid form', () => {
+    it('reveals the three required errors and does not persist an invalid form', () => {
         component['onSubmit']();
         fixture.detectChanges();
 
         expect(store.createAndReload).not.toHaveBeenCalled();
-        expect(component['form'].controls.name.touched).toBe(true);
         expect(component['form'].controls.code.touched).toBe(true);
-        expect(errors(fixture)).toEqual(['El nombre es requerido.', 'El código es requerido.']);
+        expect(component['form'].controls.descShort.touched).toBe(true);
+        expect(component['form'].controls.descLong.touched).toBe(true);
+        expect(errors(fixture)).toEqual(['El código es requerido.', 'El acrónimo es requerido.', 'El nombre es requerido.']);
     });
 
     it('rejects whitespace-only values even though they satisfy required', () => {
         const form = component['form'];
-        form.controls.name.setValue('   ');
         form.controls.code.setValue('MC1');
+        form.controls.descShort.setValue('CON');
+        form.controls.descLong.setValue('   ');
 
         component['onSubmit']();
 
         expect(store.createAndReload).not.toHaveBeenCalled();
-        expect(form.controls.name.value).toBe('');
-        expect(form.controls.name.touched).toBe(true);
+        expect(form.controls.descLong.value).toBe('');
+        expect(form.controls.descLong.touched).toBe(true);
     });
 
     it('emits saved after a successful create', () => {
         const saved = vi.fn();
         component.saved.subscribe(saved);
-        component['form'].controls.name.setValue('Consolación del Sur');
         component['form'].controls.code.setValue('MC1');
+        component['form'].controls.descShort.setValue('CON');
+        component['form'].controls.descLong.setValue('Consolación del Sur');
 
         component['onSubmit']();
 

@@ -30,23 +30,25 @@ export class ProvinceDialog {
     protected readonly title = computed(() => (this.province() ? 'Editar provincia' : 'Nueva provincia'));
 
     protected readonly form = this.fb.group({
-        name: ['', [Validators.required]],
-        code: ['', [Validators.required]]
+        code: ['', [Validators.required]],
+        descShort: ['', [Validators.required]],
+        descLong: ['', [Validators.required]]
     });
 
     constructor() {
         effect(() => {
             const province = this.province();
+            const values = {
+                code: province?.code ?? '',
+                descShort: province?.descShort ?? '',
+                descLong: province?.descLong ?? ''
+            } as const;
 
-            const name = province?.descLong ?? '';
-            if (this.form.controls.name.value !== name) {
-                this.form.controls.name.setValue(name);
-            }
-
-            const code = province?.code ?? '';
-            if (this.form.controls.code.value !== code) {
-                this.form.controls.code.setValue(code);
-            }
+            (Object.keys(values) as (keyof typeof values)[]).forEach((key) => {
+                if (this.form.controls[key].value !== values[key]) {
+                    this.form.controls[key].setValue(values[key]);
+                }
+            });
         });
     }
 
@@ -56,23 +58,22 @@ export class ProvinceDialog {
             return;
         }
 
-        const name = this.form.controls.name.value.trim();
         const code = this.form.controls.code.value.trim();
+        const descShort = this.form.controls.descShort.value.trim();
+        const descLong = this.form.controls.descLong.value.trim();
 
-        if (!name || !code) {
-            if (!name) {
-                this.form.controls.name.setValue('');
-                this.form.controls.name.markAsTouched();
-            }
-            if (!code) {
-                this.form.controls.code.setValue('');
-                this.form.controls.code.markAsTouched();
-            }
+        if (!code || !descShort || !descLong) {
+            (['code', 'descShort', 'descLong'] as const).forEach((key) => {
+                if (!this.form.controls[key].value.trim()) {
+                    this.form.controls[key].setValue('');
+                    this.form.controls[key].markAsTouched();
+                }
+            });
             return;
         }
 
         const province = this.province();
-        const payload = { name, code };
+        const payload = { code, descShort, descLong };
         const request$ = province ? this.store.updateAndReload(province.code, payload) : this.store.createAndReload(payload);
         const successMessage = province ? 'Provincia actualizada correctamente.' : 'Provincia creada correctamente.';
 

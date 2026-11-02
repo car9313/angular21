@@ -10,23 +10,7 @@
     [header]="title()"
 >
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-2">
-        <label for="municipality-name">Nombre</label>
-        <input
-            pInputText
-            id="municipality-name"
-            formControlName="name"
-            placeholder="Ej. Consolación del Sur"
-            autocomplete="off"
-            class="w-full"
-            [ngClass]="{
-                'ng-invalid ng-dirty': form.controls.name.invalid && (form.controls.name.dirty || form.controls.name.touched)
-            }"
-        />
-        @if (form.controls.name.invalid && (form.controls.name.dirty || form.controls.name.touched)) {
-            <small class="block mt-1 text-red-500 dark:text-red-400">El nombre es requerido.</small>
-        }
-
-        <label for="municipality-code" class="mt-2">Código</label>
+        <label for="municipality-code">Código</label>
         <input
             pInputText
             id="municipality-code"
@@ -40,6 +24,38 @@
         />
         @if (form.controls.code.invalid && (form.controls.code.dirty || form.controls.code.touched)) {
             <small class="block mt-1 text-red-500 dark:text-red-400">El código es requerido.</small>
+        }
+
+        <label for="municipality-short" class="mt-2">Acrónimo</label>
+        <input
+            pInputText
+            id="municipality-short"
+            formControlName="descShort"
+            placeholder="Ej. CON"
+            autocomplete="off"
+            class="w-full"
+            [ngClass]="{
+                'ng-invalid ng-dirty': form.controls.descShort.invalid && (form.controls.descShort.dirty || form.controls.descShort.touched)
+            }"
+        />
+        @if (form.controls.descShort.invalid && (form.controls.descShort.dirty || form.controls.descShort.touched)) {
+            <small class="block mt-1 text-red-500 dark:text-red-400">El acrónimo es requerido.</small>
+        }
+
+        <label for="municipality-name" class="mt-2">Nombre</label>
+        <input
+            pInputText
+            id="municipality-name"
+            formControlName="descLong"
+            placeholder="Ej. Consolación del Sur"
+            autocomplete="off"
+            class="w-full"
+            [ngClass]="{
+                'ng-invalid ng-dirty': form.controls.descLong.invalid && (form.controls.descLong.dirty || form.controls.descLong.touched)
+            }"
+        />
+        @if (form.controls.descLong.invalid && (form.controls.descLong.dirty || form.controls.descLong.touched)) {
+            <small class="block mt-1 text-red-500 dark:text-red-400">El nombre es requerido.</small>
         }
 
         <div class="flex justify-end gap-2 mt-4">

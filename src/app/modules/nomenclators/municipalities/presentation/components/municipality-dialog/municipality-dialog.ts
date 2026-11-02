@@ -5,11 +5,8 @@ import { Dialog } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { NotificationService } from '@/app/core/services/notification-services';
-
-import {
-    MunicipalityListStore
-} from '@/app/modules/nomenclators/municipalities/presentation/stores/municipality-list.store';
 import { Municipality } from '@/app/modules/nomenclators/municipalities/domain/municipality';
+import { MunicipalityListStore } from '@/app/modules/nomenclators/municipalities/presentation/stores/municipality-list.store';
 
 @Component({
     selector: 'app-municipality-dialog',
@@ -33,23 +30,25 @@ export class MunicipalityDialog {
     protected readonly title = computed(() => (this.municipality() ? 'Editar municipio' : 'Nuevo municipio'));
 
     protected readonly form = this.fb.group({
-        name: ['', [Validators.required]],
-        code: ['', [Validators.required]]
+        code: ['', [Validators.required]],
+        descShort: ['', [Validators.required]],
+        descLong: ['', [Validators.required]]
     });
 
     constructor() {
         effect(() => {
             const municipality = this.municipality();
+            const values = {
+                code: municipality?.code ?? '',
+                descShort: municipality?.descShort ?? '',
+                descLong: municipality?.descLong ?? ''
+            } as const;
 
-            const name = municipality?.descLong ?? '';
-            if (this.form.controls.name.value !== name) {
-                this.form.controls.name.setValue(name);
-            }
-
-            const code = municipality?.code ?? '';
-            if (this.form.controls.code.value !== code) {
-                this.form.controls.code.setValue(code);
-            }
+            (Object.keys(values) as (keyof typeof values)[]).forEach((key) => {
+                if (this.form.controls[key].value !== values[key]) {
+                    this.form.controls[key].setValue(values[key]);
+                }
+            });
         });
     }
 
@@ -59,23 +58,22 @@ export class MunicipalityDialog {
             return;
         }
 
-        const name = this.form.controls.name.value.trim();
         const code = this.form.controls.code.value.trim();
+        const descShort = this.form.controls.descShort.value.trim();
+        const descLong = this.form.controls.descLong.value.trim();
 
-        if (!name || !code) {
-            if (!name) {
-                this.form.controls.name.setValue('');
-                this.form.controls.name.markAsTouched();
-            }
-            if (!code) {
-                this.form.controls.code.setValue('');
-                this.form.controls.code.markAsTouched();
-            }
+        if (!code || !descShort || !descLong) {
+            (['code', 'descShort', 'descLong'] as const).forEach((key) => {
+                if (!this.form.controls[key].value.trim()) {
+                    this.form.controls[key].setValue('');
+                    this.form.controls[key].markAsTouched();
+                }
+            });
             return;
         }
 
         const municipality = this.municipality();
-        const payload = { name, code };
+        const payload = { code, descShort, descLong };
         const request$ = municipality ? this.store.updateAndReload(municipality.code, payload) : this.store.createAndReload(payload);
         const successMessage = municipality ? 'Municipio actualizado correctamente.' : 'Municipio creado correctamente.';
 
