@@ -2,15 +2,6 @@ import { MenuItem } from 'primeng/api';
 import { ACTIONS, Action } from './actions';
 import { RESOURCES, Resource } from './resources';
 
-/**
- * Menu item with RBAC metadata.
- * - resource: permission resource (typed union — typos are compile errors)
- *   required to see the leaf.
- * - requiredActions: actions required on that resource (defaults downstream
- *   to Read when omitted).
- * - alwaysVisible: ALWAYS visible even if the resource is not granted
- *   (e.g. generic entries).
- */
 export interface SecuredMenuItem extends MenuItem {
     resource?: Resource;
     requiredActions?: Action[];
@@ -18,10 +9,6 @@ export interface SecuredMenuItem extends MenuItem {
     items?: SecuredMenuItem[];
 }
 
-/**
- * Spanish menu tree. Groups without a resource are always visible; leaves
- * with a resource are filtered by the SessionStore permissions.
- */
 export const MENU_ITEMS: SecuredMenuItem[] = [
     {
         label: 'Inicio',
@@ -30,20 +17,17 @@ export const MENU_ITEMS: SecuredMenuItem[] = [
                 label: 'Panel principal',
                 icon: 'pi pi-fw pi-home',
                 path: '/panel-principal',
-                routerLink: ['/panel-principal'],
-                requiredActions: [ACTIONS.Read]
+                routerLink: ['/panel-principal']
             }
         ]
     },
     {
         label: 'Administración',
         icon: 'pi pi-fw pi-briefcase',
-        path: '/seguridad',
         items: [
             {
                 label: 'Seguridad',
                 icon: 'pi pi-fw pi-lock',
-                path: '/seguridad',
                 items: [
                     {
                         label: 'Usuarios',
@@ -70,13 +54,49 @@ export const MENU_ITEMS: SecuredMenuItem[] = [
                         requiredActions: [ACTIONS.Read]
                     },
                     {
-                        label: 'Configuración',
+                        label: 'Parámetros del sistema',
                         icon: 'pi pi-fw pi-cog',
                         path: '/seguridad/configuracion',
                         routerLink: ['/seguridad/configuracion'],
                         resource: RESOURCES.SecConfig,
                         requiredActions: [ACTIONS.Update]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        label: 'Configuración',
+        icon: 'pi pi-fw pi-sliders-h',
+        items: [
+            {
+                label: 'Nomencladores',
+                icon: 'pi pi-fw pi-tags',
+                items: [
+                    {
+                        label: 'Países',
+                        icon: 'pi pi-fw pi-flag',
+                        path: '/nomencladores/paises',
+                        routerLink: ['/nomencladores/paises'],
+                        resource: RESOURCES.Nomenclators,
+                        requiredActions: [ACTIONS.Read]
                     },
+                    {
+                        label: 'Provincias',
+                        icon: 'pi pi-fw pi-flag',
+                        path: '/nomencladores/provincias',
+                        routerLink: ['/nomencladores/provincias'],
+                        resource: RESOURCES.Nomenclators,
+                        requiredActions: [ACTIONS.Read]
+                    },
+                    {
+                        label: 'Municipios',
+                        icon: 'pi pi-fw pi-flag',
+                        path: '/nomencladores/municipios',
+                        routerLink: ['/nomencladores/municipios'],
+                        resource: RESOURCES.Nomenclators,
+                        requiredActions: [ACTIONS.Read]
+                    }
                 ]
             }
         ]

@@ -43,15 +43,19 @@ export class CryptoService {
      * KDF in scope; see the class note about the threat model.
      */
     private async getKey(): Promise<CryptoKey> {
-        this.keyPromise ??= (async () => {
-            const baseKey = await crypto.subtle.importKey('raw', new TextEncoder().encode('sakai-ng-client-secret'), 'PBKDF2', false, ['deriveKey']);
+        if (!this.keyPromise) {
+            this.keyPromise = (async () => {
+                const baseKey = await crypto.subtle.importKey('raw', new TextEncoder().encode('sakai-ng-client-secret'), 'PBKDF2', false, ['deriveKey']);
+                return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: new TextEncoder().encode(CryptoService.SALT), iterations: 100_000, hash: 'SHA-256' }, baseKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+            })();
 
-            return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: new TextEncoder().encode(CryptoService.SALT), iterations: 100_000, hash: 'SHA-256' }, baseKey, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-        })();
-
+            // Reset del cache si falla, para permitir reintento en la próxima llamada.
+            this.keyPromise.catch(() => {
+                this.keyPromise = null;
+            });
+        }
         return this.keyPromise;
     }
-
     private toBase64Url(bytes: Uint8Array): string {
         let binary = '';
         bytes.forEach((b) => (binary += String.fromCharCode(b)));

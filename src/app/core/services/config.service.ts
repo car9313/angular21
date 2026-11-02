@@ -18,14 +18,42 @@ export class ConfigService {
 
     private config: AppConfig | null = null;
 
-    async load(): Promise<void> {
-        const runtimeConfig = await lastValueFrom(this.rawHttp.get<AppConfig>(`/assets/config.${environment.env}.json`));
+    /** Single-flight: la primera llamada dispara el fetch, las demás esperan la misma promesa. */
+    private loadPromise: Promise<void> | null = null;
 
-        if (!runtimeConfig?.serverApi) {
-            throw new Error('Invalid configuration: serverApi is not defined');
-        }
+    /**
+     * Idempotente. Necesario porque el appInitializer y los guards lo invocan
+     * de forma concurrente (Angular corre todos los initializers en paralelo,
+     * y `withEnabledBlockingInitialNavigation` dispara el primer navigation
+     * antes de que la carga de config haya resuelto).
+     */
+    load(): Promise<void> {
+        this.loadPromise ??= (async () => {
+            const runtimeConfig = await lastValueFrom(this.rawHttp.get<AppConfig>(`/assets/config.${environment.env}.json`));
 
-        this.config = runtimeConfig;
+            if (!runtimeConfig?.serverApi) {
+                throw new Error('Invalid configuration: serverApi is not defined');
+            }
+
+            this.config = runtimeConfig;
+        })();
+
+        // Si la promesa falla, liberar el cache para permitir reintento.
+        this.loadPromise.catch(() => {
+            this.loadPromise = null;
+        });
+
+        return this.loadPromise;
+    }
+
+    /**
+     * Espera a que la config esté lista, disparando la carga si aún no se hizo.
+     * Punto de entrada para consumidores fuera del appInitializer (guards,
+     * use-cases) que deben garantizar que `url`/`urlWith` no tiren.
+     */
+    async whenLoaded(): Promise<void> {
+        if (this.config) return;
+        await this.load();
     }
 
     /**
@@ -36,7 +64,6 @@ export class ConfigService {
         if (!this.config?.serverApi) {
             throw new Error('Configuration not loaded: serverApi is not available');
         }
-
         return this.config.serverApi;
     }
 

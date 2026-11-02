@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { SessionStore } from '../store/session.store';
 import { RestoreSessionUseCase } from '../../modules/auth/application/restore-session.use-case';
+import { ConfigService } from '@/app/core/services/config.service';
 
 /**
  * One-shot session-restoration barrier for the auth guards.
@@ -21,13 +22,20 @@ export class SessionReadyService {
     private readonly restore = inject(RestoreSessionUseCase);
 
     private readyPromise: Promise<void> | null = null;
-
+    private readonly config = inject(ConfigService);
     /**
      * Resolves when the session is in its definitive boot state
      * (restored or confirmed logged-out). Never rejects.
      */
     whenReady(): Promise<void> {
-        this.readyPromise ??= this.restore.execute();
+        this.readyPromise ??= (async () => {
+            // El appInitializer de config y el de withEnabledBlockingInitialNavigation
+            // corren en PARALELO (Promise.all en Angular). Sin este await, el guard
+            // toca la API antes de que ConfigService tenga serverApi, y urlWith
+            // lanza sin mandar request.
+            await this.config.whenLoaded();
+            await this.restore.execute();
+        })();
         return this.readyPromise;
     }
 

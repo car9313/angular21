@@ -8,6 +8,7 @@ import { permissionGuard } from './permission.guard';
 import { SessionReadyService } from './session-ready.service';
 import { RestoreSessionUseCase } from '../../modules/auth/application/restore-session.use-case';
 import { SessionStore } from '../store/session.store';
+import { ConfigService } from '../services/config.service';
 import { ACTIONS } from '../constants/actions';
 
 @Component({ selector: 'app-dummy', template: '' })
@@ -29,7 +30,10 @@ describe('auth guards', () => {
                     { path: 'auth/login', component: DummyPage },
                     { path: 'auth/access', component: DummyPage }
                 ]),
-                { provide: RestoreSessionUseCase, useValue: { execute: restoreSpy } }
+                { provide: RestoreSessionUseCase, useValue: { execute: restoreSpy } },
+                // SessionReadyService awaits ConfigService.whenLoaded() before
+                // restoring; the real load() would fetch /assets/config.* here.
+                { provide: ConfigService, useValue: { whenLoaded: () => Promise.resolve(), urlWith: (sub: string) => `http://test-api${sub}` } }
             ]
         });
         store = TestBed.inject(SessionStore);

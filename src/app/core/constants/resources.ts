@@ -7,7 +7,8 @@ export const RESOURCES = {
     Roles: 'Role',
     Users: 'User',
     SecConfig: 'SecConfig',
-    Audits: 'Audit'
+    Audits: 'Audit',
+    RESET_PASSWORD: 'ResetPassword'
 } as const;
 
 export type Resource = (typeof RESOURCES)[keyof typeof RESOURCES];

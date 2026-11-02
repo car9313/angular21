@@ -20,17 +20,12 @@ export class SessionStorageService {
 
     async getSession<T>(key: string): Promise<T | null> {
         const raw = sessionStorage.getItem(key);
-
-        if (raw === null) {
-            return null;
-        }
-
+        if (raw === null) return null;
         try {
             return JSON.parse(await this.crypto.decrypt(raw)) as T;
-        } catch {
-            // Corrupted or foreign entry: treat as missing, never throw to consumers.
-            this.removeSession(key);
-            return null;
+        } catch (err) {
+            console.error(`[storage] decrypt "${key}" falló`, err);
+            return null; // ← NO removeSession: el dato puede estar sano
         }
     }
 

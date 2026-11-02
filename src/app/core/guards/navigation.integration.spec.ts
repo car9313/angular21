@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { appRoutes } from '../../app.routes';
 import { SessionStore } from '../store/session.store';
+import { ConfigService } from '../services/config.service';
 
 @Component({
     selector: 'app-test-host',
@@ -29,7 +30,14 @@ describe('post-login navigation (real routes)', () => {
         TestBed.configureTestingModule({
             imports: [TestHost],
             // MessageService backs the layout's global <p-toast> host.
-            providers: [provideRouter(appRoutes), provideZonelessChangeDetection(), MessageService]
+            providers: [
+                provideRouter(appRoutes),
+                provideZonelessChangeDetection(),
+                MessageService,
+                // The auth guard awaits ConfigService.whenLoaded(); the real
+                // load() would fetch /assets/config.* which is not mocked here.
+                { provide: ConfigService, useValue: { whenLoaded: () => Promise.resolve(), urlWith: (sub: string) => `http://test-api${sub}` } }
+            ]
         });
 
         router = TestBed.inject(Router);
