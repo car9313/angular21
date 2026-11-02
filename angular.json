@@ -71,6 +71,9 @@
                 },
                 "serve": {
                     "builder": "@angular/build:dev-server",
+                    "options": {
+                        "port": 1234
+                    },
                     "configurations": {
                         "production": {
                             "buildTarget": "sakai-ng:build:production"

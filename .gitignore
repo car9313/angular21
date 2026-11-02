@@ -41,6 +41,10 @@ testem.log
 # Local tooling
 .atl/
 
+# Local gate/debug artifacts (nunca se commitean)
+/*.log
+/testpid.txt
+
 # System files
 .DS_Store
 Thumbs.db
