@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, OnDestroy, output, signal, untracked, inject, DestroyRef, OnInit, noop } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, input, OnDestroy, output, signal, untracked, inject, DestroyRef, OnInit } from '@angular/core';
 import { FormsModule, ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { merge, Observable, Subject, of, switchMap, catchError, mapTo, debounceTime, distinctUntilChanged, takeUntil, tap, finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -23,7 +23,9 @@ export interface PageResponse<T> {
  * optionLabel / optionValue inputs. Typed as a record so the component stays
  * item-agnostic while keeping dot-free dynamic access safe.
  */
-type SelectItem = Record<string, unknown>;
+export type SelectItem = Record<string, unknown>;
+
+const noop = (): void => undefined;
 
 @Component({
     selector: 'app-async-select-infinite',
