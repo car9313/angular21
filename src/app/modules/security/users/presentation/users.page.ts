@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 import { ConfirmDialog } from 'primeng/confirmdialog';
-import { PageChangeEvent, UserTableComponent } from '@/app/modules/security/users/presentation/components/user-table/user-table.component';
+import { UserTableComponent } from '@/app/modules/security/users/presentation/components/user-table/user-table.component';
 import { UserDialogComponent } from '@/app/modules/security/users/presentation/components/user-dialog/user-dialog.component';
 import { UserDetailDialogComponent } from '@/app/modules/security/users/presentation/components/user-detail-dialog/user-detail-dialog.component';
 import { UserListStore } from '@/app/modules/security/users/presentation/stores/user-list.store';
@@ -13,6 +13,9 @@ import { SearchComponent } from '@/app/shared/components/search/search.component
 import { NotificationService } from '@/app/core/services/notification-services';
 import { ACTIONS } from '@/app/core/constants/actions';
 import { RESOURCES } from '@/app/core/constants/resources';
+import { PageChangeEvent } from '@/app/core/interfaces/page-change-event';
+import { handlePageChange } from '@/app/core/helpers/page-change.helper';
+import { confirmAndRun } from '@/app/core/helpers/confirm-action.helper';
 
 @Component({
     selector: 'app-users',
@@ -108,15 +111,11 @@ export class UsersPage implements OnInit {
     ]);
 
     ngOnInit(): void {
-        this.store.load(this.store.query());
+        this.store.load();
     }
 
-    onPageChange({ page, pageSize }: PageChangeEvent): void {
-        if (pageSize !== this.store.pageSize()) {
-            this.store.setPageSizeAndReload(pageSize);
-        } else {
-            this.store.setPageAndReload(page);
-        }
+    onPageChange(e: PageChangeEvent): void {
+        handlePageChange(this.store, e);
     }
 
     /** El store ya recargó; solo hay que cerrar el diálogo. */
@@ -125,34 +124,28 @@ export class UsersPage implements OnInit {
     }
 
     onDelete(user: User): void {
-        this.confirm.confirm({
-            message: `¿Está seguro de eliminar el usuario "${user.username}"?`,
+        confirmAndRun({
+            confirm: this.confirm,
+            notify: this.notify,
             header: 'Confirmar eliminación',
-            icon: 'pi pi-exclamation-triangle',
-            acceptButtonProps: { label: 'Eliminar', severity: 'danger' },
-            rejectButtonProps: { label: 'Cancelar', severity: 'secondary', text: true },
-            accept: () => {
-                this.store.deleteAndReload(user.id).subscribe({
-                    next: () => this.notify.show('success', 'Usuario eliminado correctamente.'),
-                    error: (error: unknown) => this.notify.handleGenericError(error)
-                });
-            }
+            message: `¿Está seguro de eliminar el usuario "${user.username}"?`,
+            acceptLabel: 'Eliminar',
+            acceptSeverity: 'danger',
+            action$: () => this.store.deleteAndReload(user.id),
+            successMessage: 'Usuario eliminado correctamente.'
         });
     }
 
     onResetPassword(user: User): void {
-        this.confirm.confirm({
-            message: `¿Desea restablecer la contraseña del usuario "${user.username}"?`,
+        confirmAndRun({
+            confirm: this.confirm,
+            notify: this.notify,
             header: 'Confirmar',
-            icon: 'pi pi-exclamation-triangle',
-            acceptButtonProps: { label: 'Restablecer', severity: 'primary' },
-            rejectButtonProps: { label: 'Cancelar', severity: 'secondary', text: true },
-            accept: () => {
-                this.store.resetPassword(user.id).subscribe({
-                    next: () => this.notify.show('success', 'Contraseña restablecida correctamente.'),
-                    error: (error: unknown) => this.notify.handleGenericError(error)
-                });
-            }
+            message: `¿Desea restablecer la contraseña del usuario "${user.username}"?`,
+            acceptLabel: 'Restablecer',
+            acceptSeverity: 'primary',
+            action$: () => this.store.resetPassword(user.id),
+            successMessage: 'Contraseña restablecida correctamente.'
         });
     }
 

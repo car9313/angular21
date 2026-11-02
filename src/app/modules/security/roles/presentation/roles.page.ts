@@ -1,23 +1,27 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
 import { ConfirmationService } from 'primeng/api';
 import { ConfirmDialog } from 'primeng/confirmdialog';
-import { PageChangeEvent, RoleTableComponent } from '@/app/modules/security/roles/presentation/components/role-table/role-table.component';
+import { RoleTableComponent } from '@/app/modules/security/roles/presentation/components/role-table/role-table.component';
 import { RoleNameDialogComponent } from '@/app/modules/security/roles/presentation/components/role-name-dialog/role-name-dialog.component';
 import { RolePermissionsDialogComponent } from '@/app/modules/security/roles/presentation/components/role-permissions-dialog/role-permissions-dialog.component';
 import { RoleListStore } from '@/app/modules/security/roles/presentation/stores/role-list.store';
 import { ColumnConfig } from '@/app/core/interfaces/column-config';
 import { Role } from '@/app/modules/security/roles/domain/role';
 import { TableAction } from '@/app/core/interfaces/table-action';
-import { ToolbarComponent } from '@/app/shared/components/generictToolbar/toolbar.component';
 import { SearchComponent } from '@/app/shared/components/search/search.component';
 import { NotificationService } from '@/app/core/services/notification-services';
 import { ACTIONS } from '@/app/core/constants/actions';
 import { RESOURCES } from '@/app/core/constants/resources';
+import { IconButtonComponent } from '@/app/shared/icon-button/icon-button.component';
+import { HasPermissionDirective } from '@/app/shared/directives/has-permission.directive';
+import { PageChangeEvent } from '@/app/core/interfaces/page-change-event';
+import { handlePageChange } from '@/app/core/helpers/page-change.helper';
+import { confirmAndRun } from '@/app/core/helpers/confirm-action.helper';
 
 @Component({
     selector: 'app-roles',
     standalone: true,
-    imports: [RoleTableComponent, RoleNameDialogComponent, RolePermissionsDialogComponent, ToolbarComponent, SearchComponent, ConfirmDialog],
+    imports: [RoleTableComponent, RoleNameDialogComponent, RolePermissionsDialogComponent, SearchComponent, ConfirmDialog, IconButtonComponent, HasPermissionDirective],
     providers: [RoleListStore, ConfirmationService],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
@@ -34,18 +38,18 @@ import { RESOURCES } from '@/app/core/constants/resources';
                 <app-role-permissions-dialog [role]="role" (saved)="onDialogSaved()" (cancelled)="store.closeModalAndClearSelection()" />
             }
         }
-
         <div class="card flex flex-col gap-8">
-            <!--            <app-role-filters />-->
-
-            <app-toolbar [resource]="RESOURCES.Roles" [actions]="[ACTIONS.Create]" (created)="store.openAdd()" [config]="{ visible: true, addLabel: 'Nuevo Rol' }">
-                <!-- Botón de alta y buscador agrupados a la derecha: el toolbar
+            <!-- <app-toolbar [resource]="RESOURCES.Roles" [actions]="[ACTIONS.Create]" (created)="store.openAdd()" [config]="{ visible: true, addLabel: 'Nuevo Rol' }">
+                &lt;!&ndash; Botón de alta y buscador agrupados a la derecha: el toolbar
                      empuja start a la izquierda, así que el cluster completo
-                     (alta + búsqueda) se coloca en toolbar-end. -->
-                <div toolbar-end>
-                    <app-search [searchText]="store.searchText()" (searchSubmitted)="store.setSearchAndReload($event)"></app-search>
-                </div>
-            </app-toolbar>
+                     (alta + búsqueda) se coloca en toolbar-end. &ndash;&gt;
+                <div toolbar-end></div>
+            </app-toolbar>-->
+
+            <div class="flex justify-between items-center">
+                <app-icon-button *appHasPermission="let ok; resource: RESOURCES.Roles; actions: [ACTIONS.Read]" icon="pi pi-plus" [tooltip]="'Adicionar'" severity="primary" extraClass="shadow-md download-btn" (clicked)="store.openAdd()" />
+                <app-search [searchText]="store.searchText()" (searchSubmitted)="store.setSearchAndReload($event)"></app-search>
+            </div>
 
             <app-role-table
                 [items]="items()"
@@ -72,9 +76,7 @@ export class RolesPage implements OnInit {
     private readonly notify = inject(NotificationService);
 
     // Solo el nombre: el ID es ruido visual para el usuario de negocio.
-    readonly columns: ColumnConfig<Role>[] = [
-        { field: 'name', header: 'Nombre', sortable: false }
-    ];
+    readonly columns: ColumnConfig<Role>[] = [{ field: 'name', header: 'Nombre', sortable: false }];
 
     readonly items = computed(() => this.store.entities().filter((role) => !role.isUnEditable));
 
@@ -104,15 +106,11 @@ export class RolesPage implements OnInit {
     ]);
 
     ngOnInit(): void {
-        this.store.load(this.store.query());
+        this.store.load();
     }
 
-    onPageChange({ page, pageSize }: PageChangeEvent): void {
-        if (pageSize !== this.store.pageSize()) {
-            this.store.setPageSizeAndReload(pageSize);
-        } else {
-            this.store.setPageAndReload(page);
-        }
+    onPageChange(e: PageChangeEvent): void {
+        handlePageChange(this.store, e);
     }
 
     /** El store ya recargó; solo hay que cerrar el diálogo. */
@@ -121,18 +119,15 @@ export class RolesPage implements OnInit {
     }
 
     onDelete(role: Role): void {
-        this.confirm.confirm({
-            message: `¿Está seguro de eliminar el rol "${role.name}"?`,
+        confirmAndRun({
+            confirm: this.confirm,
+            notify: this.notify,
             header: 'Confirmar eliminación',
-            icon: 'pi pi-exclamation-triangle',
-            acceptButtonProps: { label: 'Eliminar', severity: 'danger' },
-            rejectButtonProps: { label: 'Cancelar', severity: 'secondary', text: true },
-            accept: () => {
-                this.store.deleteAndReload(role.id).subscribe({
-                    next: () => this.notify.show('success', 'Rol eliminado correctamente.'),
-                    error: (error: unknown) => this.notify.handleGenericError(error)
-                });
-            }
+            message: `¿Está seguro de eliminar el rol "${role.name}"?`,
+            acceptLabel: 'Eliminar',
+            acceptSeverity: 'danger',
+            action$: () => this.store.deleteAndReload(role.id),
+            successMessage: 'Rol eliminado correctamente.'
         });
     }
 

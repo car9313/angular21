@@ -1,4 +1,3 @@
-// features/roles/state/role-list.store.ts
 import { signalStore, withMethods } from '@ngrx/signals';
 import { inject } from '@angular/core';
 
@@ -17,7 +16,8 @@ export const RoleListStore = signalStore(
     // selección + coordinadores de recarga. Sin escrituras ni `saving`.
     withServerTable<Role, number>({
         repository: () => inject(RoleRepository),
-        errorMessage: 'No se pudieron cargar los roles.'
+        errorMessage: 'No se pudieron cargar los roles.',
+        selectId:'id'
     }),
 
     // ─── ESCRITURA separable ───────────────────────────────────────────

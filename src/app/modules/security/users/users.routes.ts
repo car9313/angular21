@@ -10,7 +10,7 @@ import { ACTIONS } from '../../../core/constants/actions';
  */
 export default [
     {
-        path: 'usuarios',
+        path: '',
         component: UsersPage,
         data: { title: 'Usuarios', breadcrumb: 'Usuarios', resource: RESOURCES.Users, actions: [ACTIONS.Read] }
     }

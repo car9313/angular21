@@ -15,7 +15,8 @@ export const UserListStore = signalStore(
     // ─── LECTURA de servidor ───────────────────────────────────────────
     withServerTable<User, number>({
         repository: () => inject(UserRepository),
-        errorMessage: 'No se pudieron cargar los usuarios.'
+        errorMessage: 'No se pudieron cargar los usuarios.',
+        selectId:'id'
     }),
 
     // ─── ESCRITURA separable ───────────────────────────────────────────

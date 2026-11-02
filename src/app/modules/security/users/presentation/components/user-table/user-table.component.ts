@@ -9,17 +9,14 @@ import { Skeleton } from 'primeng/skeleton';
 import { Tooltip } from 'primeng/tooltip';
 import { MenuItem } from 'primeng/api';
 
-import { EmptyStateComponent } from '../../../../../../shared/components/empty-state/empty-state.component';
+import { EmptyStateComponent } from '@/app/shared/components/empty-state/empty-state.component';
 import { User } from '@/app/modules/security/users/domain/user';
 import { TableActionMenuService } from '@/app/core/services/table-action-menu';
 import { TableAction } from '@/app/core/interfaces/table-action';
 import { ColumnConfig } from '@/app/core/interfaces/column-config';
 import { getPaginated } from '@/app/core/helpers/table-lazy-load.helper';
+import { PageChangeEvent } from '@/app/core/interfaces/page-change-event';
 
-export interface PageChangeEvent {
-    page: number;
-    pageSize: number;
-}
 
 @Component({
     selector: 'app-user-table',

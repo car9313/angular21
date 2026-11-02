@@ -12,7 +12,7 @@ import { ACTIONS } from '../../../core/constants/actions';
  */
 export default [
     {
-        path: 'roles',
+        path: '',
         component: RolesPage,
         data: { title: 'Roles', breadcrumb: 'Roles', resource: RESOURCES.Roles, actions: [ACTIONS.Read] }
     }

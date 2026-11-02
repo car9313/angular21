@@ -1,9 +1,10 @@
-import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+
 import { GenericHttpService } from '../../../../core/services/generic-http.service';
 import { QueryParams, defaultQuery } from '../../../../core/interfaces/query-params';
 import { PaginatedResponse } from '../../../../core/interfaces/paginated-response';
 import { Role, AppPermissionsCategory } from '../domain/role';
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class RoleRepository {

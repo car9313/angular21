@@ -1,6 +1,6 @@
 import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Dialog } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
@@ -57,30 +57,13 @@ import { minLengthFrom, passwordMatch, passwordStrength, passwordStrengthMessage
         >
             <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-2">
                 <label for="username">Usuario</label>
-                <input
-                    pInputText
-                    id="username"
-                    formControlName="username"
-                    placeholder="Ej. aruiz"
-                    autocomplete="off"
-                    class="w-full"
-                    [readonly]="isEdit()"
-                    [ngClass]="{ 'ng-invalid ng-dirty': showError('username') }"
-                />
+                <input pInputText id="username" formControlName="username" placeholder="Ej. aruiz" autocomplete="off" class="w-full" [readonly]="isEdit()" [ngClass]="{ 'ng-invalid ng-dirty': showError('username') }" />
                 @if (showError('username')) {
                     <small class="block mt-1 text-red-500 dark:text-red-400">{{ usernameMessage() }}</small>
                 }
 
                 <label for="fullName">Nombre</label>
-                <input
-                    pInputText
-                    id="fullName"
-                    formControlName="fullName"
-                    placeholder="Ej. Ana Ruiz"
-                    autocomplete="name"
-                    class="w-full"
-                    [ngClass]="{ 'ng-invalid ng-dirty': showError('fullName') }"
-                />
+                <input pInputText id="fullName" formControlName="fullName" placeholder="Ej. Ana Ruiz" autocomplete="name" class="w-full" [ngClass]="{ 'ng-invalid ng-dirty': showError('fullName') }" />
                 @if (showError('fullName')) {
                     <small class="block mt-1 text-red-500 dark:text-red-400">El nombre es requerido.</small>
                 }
@@ -94,9 +77,10 @@ import { minLengthFrom, passwordMatch, passwordStrength, passwordStrengthMessage
                     [feedback]="false"
                     [toggleMask]="true"
                     styleClass="w-full"
-                    [ngClass]="{ 'ng-invalid ng-dirty': showError('password') }"
+                    [inputStyle]="{ width: '100%' }"
+                    [ngClass]="{ 'ng-invalid ng-dirty': showPasswordErrorBlock() }"
                 />
-                @if (showError('password')) {
+                @if (showPasswordErrorBlock()) {
                     <div class="block mt-1 text-red-500 dark:text-red-400">
                         @if (passwordHasRequiredError()) {
                             <small class="block">La contraseña es requerida.</small>
@@ -116,6 +100,7 @@ import { minLengthFrom, passwordMatch, passwordStrength, passwordStrengthMessage
                     [feedback]="false"
                     [toggleMask]="true"
                     styleClass="w-full"
+                    [inputStyle]="{ width: '100%' }"
                     [ngClass]="{ 'ng-invalid ng-dirty': showError('passwordConfirmation') || showMismatch() }"
                 />
                 @if (showError('passwordConfirmation') || showMismatch()) {
@@ -183,13 +168,16 @@ export class UserDialogComponent {
 
     protected readonly title = computed(() => (this.user() ? 'Editar usuario' : 'Nuevo usuario'));
 
-    protected readonly form = this.fb.group({
-        username: ['', [Validators.required, minLengthFrom(() => this.usernameMinLength())]],
-        fullName: ['', [Validators.required]],
-        password: ['', []],
-        passwordConfirmation: ['', []],
-        roles: [[] as Role[], []]
-    }, { validators: [passwordMatch('password', 'passwordConfirmation')] });
+    protected readonly form = this.fb.group(
+        {
+            username: ['', [Validators.required, minLengthFrom(() => this.usernameMinLength())]],
+            fullName: ['', [Validators.required]],
+            password: ['', []],
+            passwordConfirmation: ['', []],
+            roles: [[] as Role[], []]
+        },
+        { validators: [passwordMatch('password', 'passwordConfirmation')] }
+    );
 
     constructor() {
         // Los settings son un singleton root: si nadie los cargó aún, pedirlos
@@ -207,9 +195,9 @@ export class UserDialogComponent {
             const confirmation = this.form.controls.passwordConfirmation;
             const roles = this.form.controls.roles;
 
-            password.setValidators(isEdit
-                ? [passwordStrength(() => this.passwordSettings())]
-                : [Validators.required, passwordStrength(() => this.passwordSettings())]);
+            password.setValidators(isEdit ? [this.passwordStrengthIfFilled()] : [Validators.required, passwordStrength(() => this.passwordSettings())]);
+
+            // La confirmación en edición solo debe validarse SI hay contraseña nueva.
             confirmation.setValidators(isEdit ? [] : [Validators.required]);
             roles.setValidators(isEdit ? [] : [Validators.required]);
 
@@ -253,6 +241,21 @@ export class UserDialogComponent {
             this.form.updateValueAndValidity({ emitEvent: false });
         });
     }
+    private passwordStrengthIfFilled() {
+        return (control: AbstractControl): ValidationErrors | null => {
+            // En edición, contraseña vacía = "no cambiar" → sin validación.
+            if (this.isEdit() && !control.value) {
+                return null;
+            }
+            return passwordStrength(() => this.passwordSettings())(control);
+        };
+    }
+    protected showPasswordErrorBlock(): boolean {
+        if (this.isEdit() && !this.form.controls.password.value && !this.form.controls.passwordConfirmation.value) {
+            return false;
+        }
+        return this.showError('password') || this.showMismatch();
+    }
 
     // ─── Helpers de validación (condición R1/R2: invalid && (dirty || touched)) ──
     protected showError(name: 'username' | 'fullName' | 'password' | 'passwordConfirmation' | 'roles'): boolean {
@@ -282,8 +285,7 @@ export class UserDialogComponent {
     /** El mismatch vive en el GRUPO; se revela si el usuario tocó cualquiera de los dos campos. */
     protected showMismatch(): boolean {
         const { password, passwordConfirmation } = this.form.controls;
-        return this.form.errors?.['passwordMismatch'] === true
-            && (password.dirty || password.touched || passwordConfirmation.dirty || passwordConfirmation.touched);
+        return this.form.errors?.['passwordMismatch'] === true && (password.dirty || password.touched || passwordConfirmation.dirty || passwordConfirmation.touched);
     }
 
     protected isEdit(): boolean {
@@ -305,7 +307,10 @@ export class UserDialogComponent {
         this.rolesLoading.set(true);
         this.roleRepository
             .list({ ...defaultQuery(), pag: { Page: 1, PageSize: 1000 } })
-            .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.rolesLoading.set(false)))
+            .pipe(
+                takeUntilDestroyed(this.destroyRef),
+                finalize(() => this.rolesLoading.set(false))
+            )
             .subscribe({
                 next: (page) => this.rolesCatalog.set(page.objects ?? []),
                 error: (error: unknown) => this.notify.handleGenericError(error)
@@ -342,18 +347,18 @@ export class UserDialogComponent {
 
         const request$ = user
             ? this.store.updateAndReload(user.id, {
-                fullName,
-                password: password || null,
-                passwordConfirmation: passwordConfirmation || null,
-                roleIds
-            } satisfies UserUpdateDto)
+                  fullName,
+                  password: password || null,
+                  passwordConfirmation: passwordConfirmation || null,
+                  roleIds
+              } satisfies UserUpdateDto)
             : this.store.createAndReload({
-                userName: username,
-                fullName,
-                password,
-                passwordConfirmation,
-                roleIds
-            } satisfies UserCreateDto);
+                  userName: username,
+                  fullName,
+                  password,
+                  passwordConfirmation,
+                  roleIds
+              } satisfies UserCreateDto);
 
         const successMessage = user ? 'Usuario actualizado correctamente.' : 'Usuario creado correctamente.';
         request$.subscribe({
