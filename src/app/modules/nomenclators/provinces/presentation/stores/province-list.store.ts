@@ -9,7 +9,7 @@ import { withFiltersPersistence } from '@/app/core/store/features/with-filters-p
 import { withModal } from '@/app/core/store/features/with-modal.feature';
 import { withPendingKeys } from '@/app/core/store/features/with-pending-keys.feature';
 import { Province } from '@/app/modules/nomenclators/provinces/domain/province';
-import { ProvinceRepository } from '@/app/modules/nomenclators/provinces/infraestructure/http/province-repository';
+import { ProvinceRepository } from '@/app/modules/nomenclators/provinces/infrastructure/http/province-repository';
 
 export type ProvinceModalMode = 'add' | 'edit' | 'detail';
 

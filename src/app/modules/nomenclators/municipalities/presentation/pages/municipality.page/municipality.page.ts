@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { NotificationService } from '@/app/core/services/notification-services';
 import { ColumnConfig } from '@/app/core/interfaces/column-config';
 import { TableAction } from '@/app/core/interfaces/table-action';
@@ -11,6 +11,8 @@ import { SearchComponent } from '@/app/shared/components/search/search.component
 import { SessionStore } from '@/app/core/store/session.store';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { handlePageChange } from '@/app/core/helpers/page-change.helper';
+import { defaultQuery } from '@/app/core/interfaces/query-params';
+import { ProvinceRepository } from '@/app/modules/nomenclators/provinces/infrastructure/http/province-repository';
 import {
     MunicipalityDialog
 } from '@/app/modules/nomenclators/municipalities/presentation/components/municipality-dialog/municipality-dialog';
@@ -40,11 +42,15 @@ export class MunicipalityPage implements OnInit {
     private readonly notify = inject(NotificationService);
     private readonly session = inject(SessionStore);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly provinceRepository = inject(ProvinceRepository);
+
+    private readonly provinceNames = signal<ReadonlyMap<string, string>>(new Map());
 
     readonly columns: ColumnConfig<Municipality>[] = [
         { field: 'code', header: 'Código', sortable: false },
-        { field: 'descShort', header: 'Acrónimo' },
-        { field: 'descLong', header: 'Nombre', sortable: false },
+        { field: 'shortName', header: 'Acrónimo' },
+        { field: 'name', header: 'Nombre', sortable: false },
+        { field: 'provinceName', header: 'Provincia', sortable: false },
         {
             field: 'active',
             header: 'Activo',
@@ -53,7 +59,14 @@ export class MunicipalityPage implements OnInit {
         }
     ];
 
-    readonly items = computed(() => this.store.entities());
+    readonly items = computed(() => {
+        const names = this.provinceNames();
+
+        return this.store.entities().map((municipality) => ({
+            ...municipality,
+            provinceName: municipality.provinceName ?? (municipality.provinceCode ? (names.get(municipality.provinceCode) ?? null) : null)
+        }));
+    });
 
     readonly canToggle = computed(() => this.session.hasPermission(RESOURCES.Nomenclators, [ACTIONS.Update]));
 
@@ -74,6 +87,17 @@ export class MunicipalityPage implements OnInit {
 
     ngOnInit(): void {
         this.store.load();
+        this.loadProvinceNames();
+    }
+
+    private loadProvinceNames(): void {
+        this.provinceRepository
+            .list({ ...defaultQuery(), pag: { Page: 1, PageSize: 1000 } })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+                next: (response) => this.provinceNames.set(new Map(response.objects.map((province) => [province.code, province.name]))),
+                error: () => this.provinceNames.set(new Map())
+            });
     }
 
     onPageChange(e: PageChangeEvent): void {

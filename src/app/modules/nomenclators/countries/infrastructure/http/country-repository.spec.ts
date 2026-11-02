@@ -7,13 +7,15 @@ import { firstValueFrom } from 'rxjs';
 import { CountryRepository } from './country-repository';
 import { ConfigService } from '@/app/core/services/config.service';
 import { defaultQuery } from '@/app/core/interfaces/query-params';
-import { Country } from '../../domain/country';
+import { Country, CountryInput } from '../../domain/country';
+import { CountryDto } from '../dtos/country.dto';
 
 const FAKE_SERVER_API = 'http://test-api';
 const COUNTRIES_URL = `${FAKE_SERVER_API}/api/country`;
 
-const CUBA: Country = { id: 1, name: 'Cuba', code: 'CU', active: true };
-const PAYLOAD = { name: 'Cuba', code: 'CU' };
+const CUBA_DTO: CountryDto = { code: 'CU', name: 'Cuba', active: true, isUnitedState: false };
+const CUBA: Country = { code: 'CU', name: 'Cuba', active: true };
+const PAYLOAD: CountryInput = { code: 'CU', name: 'Cuba' };
 
 describe('CountryRepository', () => {
     let repository: CountryRepository;
@@ -44,9 +46,11 @@ describe('CountryRepository', () => {
         expect(req.request.params.get('Pag.Page')).toBe('1');
         expect(req.request.params.get('Pag.PageSize')).toBe('5');
 
-        req.flush({ objects: [CUBA], meta: { currentPage: 1, nextPage: null, prevPage: null, totalPage: 1, totalCount: 1 } });
+        req.flush({ objects: [CUBA_DTO], meta: { currentPage: 1, nextPage: null, prevPage: null, totalPage: 1, totalCount: 1 } });
 
-        expect((await done).objects).toEqual([CUBA]);
+        const response = await done;
+        expect(response.objects).toEqual([CUBA]);
+        expect(response.objects[0]).not.toHaveProperty('isUnitedState');
     });
 
     it('gets the detail through GET /api/country/{code}', async () => {
@@ -54,7 +58,7 @@ describe('CountryRepository', () => {
 
         const req = await vi.waitFor(() => httpMock.expectOne(`${COUNTRIES_URL}/CU`));
         expect(req.request.method).toBe('GET');
-        req.flush(CUBA);
+        req.flush(CUBA_DTO);
 
         expect(await done).toEqual(CUBA);
     });
@@ -65,7 +69,7 @@ describe('CountryRepository', () => {
         const req = await vi.waitFor(() => httpMock.expectOne(COUNTRIES_URL));
         expect(req.request.method).toBe('POST');
         expect(req.request.body).toEqual(PAYLOAD);
-        req.flush(CUBA);
+        req.flush(CUBA_DTO);
 
         expect(await done).toEqual(CUBA);
     });
@@ -76,7 +80,7 @@ describe('CountryRepository', () => {
         const req = await vi.waitFor(() => httpMock.expectOne(`${COUNTRIES_URL}/CU`));
         expect(req.request.method).toBe('PUT');
         expect(req.request.body).toEqual(PAYLOAD);
-        req.flush(CUBA);
+        req.flush(CUBA_DTO);
 
         expect(await done).toEqual(CUBA);
     });

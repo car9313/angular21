@@ -8,7 +8,7 @@ import { ProvinceDialog } from './province-dialog';
 import { ProvinceListStore } from '@/app/modules/nomenclators/provinces/presentation/stores/province-list.store';
 import { Province } from '@/app/modules/nomenclators/provinces/domain/province';
 
-const PINAR: Province = { code: 'PR', descShort: 'PRI', descLong: 'Pinar del Río', active: true };
+const PINAR: Province = { code: 'PR', shortName: 'PRI', name: 'Pinar del Río', active: true };
 
 function storeStub() {
     return {
@@ -58,12 +58,12 @@ describe('ProvinceDialog', () => {
     it('creates a trimmed province with the domain payload', () => {
         const form = component['form'];
         form.controls.code.setValue('  PR  ');
-        form.controls.descShort.setValue('  PRI  ');
-        form.controls.descLong.setValue('  Pinar del Río  ');
+        form.controls.shortName.setValue('  PRI  ');
+        form.controls.name.setValue('  Pinar del Río  ');
 
         component['onSubmit']();
 
-        expect(store.createAndReload).toHaveBeenCalledWith({ code: 'PR', descShort: 'PRI', descLong: 'Pinar del Río' });
+        expect(store.createAndReload).toHaveBeenCalledWith({ code: 'PR', shortName: 'PRI', name: 'Pinar del Río' });
         expect(store.updateAndReload).not.toHaveBeenCalled();
     });
 
@@ -74,12 +74,12 @@ describe('ProvinceDialog', () => {
 
         const form = component['form'];
         form.controls.code.setValue('PRN');
-        form.controls.descShort.setValue('PRN');
-        form.controls.descLong.setValue('Pinar del Río Norte');
+        form.controls.shortName.setValue('PRN');
+        form.controls.name.setValue('Pinar del Río Norte');
 
         component['onSubmit']();
 
-        expect(store.updateAndReload).toHaveBeenCalledWith('PR', { code: 'PRN', descShort: 'PRN', descLong: 'Pinar del Río Norte' });
+        expect(store.updateAndReload).toHaveBeenCalledWith('PR', { code: 'PRN', shortName: 'PRN', name: 'Pinar del Río Norte' });
         expect(store.createAndReload).not.toHaveBeenCalled();
     });
 
@@ -89,30 +89,30 @@ describe('ProvinceDialog', () => {
 
         expect(store.createAndReload).not.toHaveBeenCalled();
         expect(component['form'].controls.code.touched).toBe(true);
-        expect(component['form'].controls.descShort.touched).toBe(true);
-        expect(component['form'].controls.descLong.touched).toBe(true);
+        expect(component['form'].controls.shortName.touched).toBe(true);
+        expect(component['form'].controls.name.touched).toBe(true);
         expect(errors(fixture)).toEqual(['El código es requerido.', 'El acrónimo es requerido.', 'El nombre es requerido.']);
     });
 
     it('rejects whitespace-only values even though they satisfy required', () => {
         const form = component['form'];
         form.controls.code.setValue('PR');
-        form.controls.descShort.setValue('   ');
-        form.controls.descLong.setValue('Pinar del Río');
+        form.controls.shortName.setValue('   ');
+        form.controls.name.setValue('Pinar del Río');
 
         component['onSubmit']();
 
         expect(store.createAndReload).not.toHaveBeenCalled();
-        expect(form.controls.descShort.value).toBe('');
-        expect(form.controls.descShort.touched).toBe(true);
+        expect(form.controls.shortName.value).toBe('');
+        expect(form.controls.shortName.touched).toBe(true);
     });
 
     it('emits saved after a successful create', () => {
         const saved = vi.fn();
         component.saved.subscribe(saved);
         component['form'].controls.code.setValue('PR');
-        component['form'].controls.descShort.setValue('PRI');
-        component['form'].controls.descLong.setValue('Pinar del Río');
+        component['form'].controls.shortName.setValue('PRI');
+        component['form'].controls.name.setValue('Pinar del Río');
 
         component['onSubmit']();
 

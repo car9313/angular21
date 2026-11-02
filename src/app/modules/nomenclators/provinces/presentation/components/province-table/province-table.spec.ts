@@ -7,13 +7,13 @@ import { ProvinceTable } from './province-table';
 import { ColumnConfig } from '@/app/core/interfaces/column-config';
 import { Province } from '@/app/modules/nomenclators/provinces/domain/province';
 
-const PINAR: Province = { code: 'PR', descShort: 'PRI', descLong: 'Pinar del Río', active: true };
-const HABANA: Province = { code: 'LH', descShort: 'HAB', descLong: 'La Habana', active: false };
+const PINAR: Province = { code: 'PR', shortName: 'PRI', name: 'Pinar del Río', active: true };
+const HABANA: Province = { code: 'LH', shortName: 'HAB', name: 'La Habana', active: false };
 
 const COLUMNS: ColumnConfig<Province>[] = [
     { field: 'code', header: 'Código' },
-    { field: 'descShort', header: 'Acrónimo' },
-    { field: 'descLong', header: 'Nombre' },
+    { field: 'shortName', header: 'Acrónimo' },
+    { field: 'name', header: 'Nombre' },
     { field: 'active', header: 'Activo' }
 ];
 

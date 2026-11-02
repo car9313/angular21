@@ -7,7 +7,7 @@ import { CountryDetailsSkeletonComponent } from '@/app/modules/nomenclators/coun
 
 import {
     MunicipalityRepository
-} from '@/app/modules/nomenclators/municipalities/infraestructure/http/municipality-repository';
+} from '@/app/modules/nomenclators/municipalities/infrastructure/http/municipality-repository';
 
 @Component({
     selector: 'app-municipality-detail-dialog',

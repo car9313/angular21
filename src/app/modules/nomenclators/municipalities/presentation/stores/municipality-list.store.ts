@@ -10,7 +10,7 @@ import { withPendingKeys } from '@/app/core/store/features/with-pending-keys.fea
 import { Municipality } from '@/app/modules/nomenclators/municipalities/domain/municipality';
 import {
     MunicipalityRepository
-} from '@/app/modules/nomenclators/municipalities/infraestructure/http/municipality-repository';
+} from '@/app/modules/nomenclators/municipalities/infrastructure/http/municipality-repository';
 
 
 export type MunicipalityModalMode = 'add' | 'edit' | 'detail';

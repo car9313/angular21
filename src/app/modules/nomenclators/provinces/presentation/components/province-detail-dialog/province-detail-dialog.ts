@@ -4,7 +4,7 @@ import { Dialog } from 'primeng/dialog';
 import { Button } from 'primeng/button';
 import { getHttpErrorMessage } from '@/app/core/utils/http-error-message';
 import { CountryDetailsSkeletonComponent } from '@/app/modules/nomenclators/countries/presentation/components/details-skeleton/country-details-skeleton';
-import { ProvinceRepository } from '@/app/modules/nomenclators/provinces/infraestructure/http/province-repository';
+import { ProvinceRepository } from '@/app/modules/nomenclators/provinces/infrastructure/http/province-repository';
 
 @Component({
     selector: 'app-province-detail-dialog',

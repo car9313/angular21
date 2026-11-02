@@ -7,7 +7,7 @@ import { CountryDetailDialog } from './country-detail-dialog';
 import { CountriesListStore } from '@/app/modules/nomenclators/countries/presentation/stores/countries-list.store';
 import { Country } from '@/app/modules/nomenclators/countries/domain/country';
 
-const CUBA: Country = { id: 1, name: 'Cuba', code: 'CU', active: true };
+const CUBA: Country = { name: 'Cuba', code: 'CU', active: true };
 
 describe('CountryDetailDialog', () => {
     let fixture: ComponentFixture<CountryDetailDialog>;

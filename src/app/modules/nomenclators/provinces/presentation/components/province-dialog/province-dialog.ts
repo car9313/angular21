@@ -5,7 +5,7 @@ import { Dialog } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { NotificationService } from '@/app/core/services/notification-services';
-import { Province } from '@/app/modules/nomenclators/provinces/domain/province';
+import { Province, ProvinceInput } from '@/app/modules/nomenclators/provinces/domain/province';
 import { ProvinceListStore } from '@/app/modules/nomenclators/provinces/presentation/stores/province-list.store';
 
 @Component({
@@ -31,8 +31,8 @@ export class ProvinceDialog {
 
     protected readonly form = this.fb.group({
         code: ['', [Validators.required]],
-        descShort: ['', [Validators.required]],
-        descLong: ['', [Validators.required]]
+        shortName: ['', [Validators.required]],
+        name: ['', [Validators.required]]
     });
 
     constructor() {
@@ -40,8 +40,8 @@ export class ProvinceDialog {
             const province = this.province();
             const values = {
                 code: province?.code ?? '',
-                descShort: province?.descShort ?? '',
-                descLong: province?.descLong ?? ''
+                shortName: province?.shortName ?? '',
+                name: province?.name ?? ''
             } as const;
 
             (Object.keys(values) as (keyof typeof values)[]).forEach((key) => {
@@ -59,11 +59,11 @@ export class ProvinceDialog {
         }
 
         const code = this.form.controls.code.value.trim();
-        const descShort = this.form.controls.descShort.value.trim();
-        const descLong = this.form.controls.descLong.value.trim();
+        const shortName = this.form.controls.shortName.value.trim();
+        const name = this.form.controls.name.value.trim();
 
-        if (!code || !descShort || !descLong) {
-            (['code', 'descShort', 'descLong'] as const).forEach((key) => {
+        if (!code || !shortName || !name) {
+            (['code', 'shortName', 'name'] as const).forEach((key) => {
                 if (!this.form.controls[key].value.trim()) {
                     this.form.controls[key].setValue('');
                     this.form.controls[key].markAsTouched();
@@ -73,7 +73,7 @@ export class ProvinceDialog {
         }
 
         const province = this.province();
-        const payload = { code, descShort, descLong };
+        const payload: ProvinceInput = { code, shortName, name };
         const request$ = province ? this.store.updateAndReload(province.code, payload) : this.store.createAndReload(payload);
         const successMessage = province ? 'Provincia actualizada correctamente.' : 'Provincia creada correctamente.';
 

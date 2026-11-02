@@ -7,7 +7,7 @@ import { CountriesListStore } from './countries-list.store';
 import { CountryRepository } from '@/app/modules/nomenclators/countries/infrastructure/http/country-repository';
 import { Country } from '@/app/modules/nomenclators/countries/domain/country';
 
-const CUBA: Country = { id: 1, name: 'Cuba', code: 'CU', active: true };
+const CUBA: Country = { name: 'Cuba', code: 'CU', active: true };
 
 const PAGE = {
     objects: [CUBA],

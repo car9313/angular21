@@ -5,13 +5,13 @@ import { Observable, of } from 'rxjs';
 import { MessageService } from 'primeng/api';
 
 import { ProvincesPage } from './provinces.page';
-import { ProvinceRepository } from '@/app/modules/nomenclators/provinces/infraestructure/http/province-repository';
+import { ProvinceRepository } from '@/app/modules/nomenclators/provinces/infrastructure/http/province-repository';
 import { Province } from '@/app/modules/nomenclators/provinces/domain/province';
 import { SessionStore } from '@/app/core/store/session.store';
 import { RESOURCES } from '@/app/core/constants/resources';
 import { ACTIONS } from '@/app/core/constants/actions';
 
-const PINAR: Province = { code: 'PR', descShort: 'PRI', descLong: 'Pinar del Río', active: true };
+const PINAR: Province = { code: 'PR', shortName: 'PRI', name: 'Pinar del Río', active: true };
 
 const PAGE = {
     objects: [PINAR],

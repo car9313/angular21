@@ -4,10 +4,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 
 import { MunicipalityDetailDialog } from './municipality-detail-dialog';
-import { MunicipalityRepository } from '@/app/modules/nomenclators/municipalities/infraestructure/http/municipality-repository';
+import { MunicipalityRepository } from '@/app/modules/nomenclators/municipalities/infrastructure/http/municipality-repository';
 import { Municipality } from '@/app/modules/nomenclators/municipalities/domain/municipality';
 
-const CONSOLACION: Municipality = { code: 'MC1', descShort: 'CON', descLong: 'Consolación del Sur', active: true };
+const CONSOLACION: Municipality = { code: 'MC1', shortName: 'CON', name: 'Consolación del Sur', active: true, provinceCode: 'PR', provinceName: 'Pinar del Río' };
 
 describe('MunicipalityDetailDialog', () => {
     let fixture: ComponentFixture<MunicipalityDetailDialog>;

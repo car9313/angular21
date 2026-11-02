@@ -1,15 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { GenericHttpService } from '@/app/core/services/generic-http.service';
 import { defaultQuery, QueryParams } from '@/app/core/interfaces/query-params';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { PaginatedResponse } from '@/app/core/interfaces/paginated-response';
-import { Country } from '@/app/modules/nomenclators/countries/domain/country';
+import { Country, CountryInput } from '@/app/modules/nomenclators/countries/domain/country';
 import { HttpResponse } from '@angular/common/http';
-
-export interface CountryPayload {
-    name: string;
-    code: string;
-}
+import { CountryDto } from '@/app/modules/nomenclators/countries/infrastructure/dtos/country.dto';
+import { CountryMapper } from '@/app/modules/nomenclators/countries/infrastructure/mappers/country.mapper';
 
 @Injectable({
     providedIn: 'root'
@@ -19,20 +16,26 @@ export class CountryRepository {
     private readonly http = inject(GenericHttpService);
 
     list(query: QueryParams = defaultQuery()): Observable<PaginatedResponse<Country>> {
-        return this.http.getAll<Country>(`${this.endpoint}/all`, query);
+        return this.http.getAll<CountryDto>(`${this.endpoint}/all`, query).pipe(
+            map((response) => ({
+                objects: response.objects.map((dto) => CountryMapper.toDomain(dto)),
+                meta: response.meta
+            }))
+        );
     }
 
     getById(code: string): Observable<Country> {
-        return this.http.getById<Country>(`${this.endpoint}/${code}`);
+        return this.http.getById<CountryDto>(`${this.endpoint}/${code}`).pipe(map((dto) => CountryMapper.toDomain(dto)));
     }
 
-    create(payload: CountryPayload): Observable<Country> {
-        return this.http.create<Country>(this.endpoint, payload);
+    create(input: CountryInput): Observable<Country> {
+        return this.http.create<CountryDto>(this.endpoint, CountryMapper.toWriteDto(input)).pipe(map((dto) => CountryMapper.toDomain(dto)));
     }
 
-    update(code: string, payload: CountryPayload): Observable<Country> {
-        return this.http.update<Country>(`${this.endpoint}/${code}`, payload);
+    update(code: string, input: CountryInput): Observable<Country> {
+        return this.http.update<CountryDto>(`${this.endpoint}/${code}`, CountryMapper.toWriteDto(input)).pipe(map((dto) => CountryMapper.toDomain(dto)));
     }
+
     activate(code: string): Observable<HttpResponse<void>> {
         return this.http.requestResponse<void>('PUT', `${this.endpoint}/activate/${code}`);
     }

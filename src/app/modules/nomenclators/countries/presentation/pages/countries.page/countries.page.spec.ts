@@ -11,7 +11,7 @@ import { SessionStore } from '@/app/core/store/session.store';
 import { RESOURCES } from '@/app/core/constants/resources';
 import { ACTIONS } from '@/app/core/constants/actions';
 
-const CUBA: Country = { id: 1, name: 'Cuba', code: 'CU', active: true };
+const CUBA: Country = { name: 'Cuba', code: 'CU', active: true };
 
 const PAGE = {
     objects: [CUBA],

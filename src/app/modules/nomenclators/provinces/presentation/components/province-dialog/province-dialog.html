@@ -30,15 +30,15 @@
         <input
             pInputText
             id="province-short"
-            formControlName="descShort"
+            formControlName="shortName"
             placeholder="Ej. PRI"
             autocomplete="off"
             class="w-full"
             [ngClass]="{
-                'ng-invalid ng-dirty': form.controls.descShort.invalid && (form.controls.descShort.dirty || form.controls.descShort.touched)
+                'ng-invalid ng-dirty': form.controls.shortName.invalid && (form.controls.shortName.dirty || form.controls.shortName.touched)
             }"
         />
-        @if (form.controls.descShort.invalid && (form.controls.descShort.dirty || form.controls.descShort.touched)) {
+        @if (form.controls.shortName.invalid && (form.controls.shortName.dirty || form.controls.shortName.touched)) {
             <small class="block mt-1 text-red-500 dark:text-red-400">El acrónimo es requerido.</small>
         }
 
@@ -46,15 +46,15 @@
         <input
             pInputText
             id="province-name"
-            formControlName="descLong"
+            formControlName="name"
             placeholder="Ej. Pinar del Río"
             autocomplete="off"
             class="w-full"
             [ngClass]="{
-                'ng-invalid ng-dirty': form.controls.descLong.invalid && (form.controls.descLong.dirty || form.controls.descLong.touched)
+                'ng-invalid ng-dirty': form.controls.name.invalid && (form.controls.name.dirty || form.controls.name.touched)
             }"
         />
-        @if (form.controls.descLong.invalid && (form.controls.descLong.dirty || form.controls.descLong.touched)) {
+        @if (form.controls.name.invalid && (form.controls.name.dirty || form.controls.name.touched)) {
             <small class="block mt-1 text-red-500 dark:text-red-400">El nombre es requerido.</small>
         }
 

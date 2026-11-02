@@ -7,8 +7,8 @@ import { CountryTable } from './country-table';
 import { ColumnConfig } from '@/app/core/interfaces/column-config';
 import { Country } from '@/app/modules/nomenclators/countries/domain/country';
 
-const CUBA: Country = { id: 1, name: 'Cuba', code: 'CU', active: true };
-const SPAIN: Country = { id: 2, name: 'España', code: 'ES', active: false };
+const CUBA: Country = { name: 'Cuba', code: 'CU', active: true };
+const SPAIN: Country = { name: 'España', code: 'ES', active: false };
 
 const COLUMNS: ColumnConfig<Country>[] = [
     { field: 'name', header: 'Nombre' },

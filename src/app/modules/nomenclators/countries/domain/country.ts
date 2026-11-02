@@ -1,6 +1,10 @@
 export interface Country {
-    id: number;
-    name: string;
     code: string;
+    name: string;
     active: boolean;
+}
+
+export interface CountryInput {
+    code: string;
+    name: string;
 }

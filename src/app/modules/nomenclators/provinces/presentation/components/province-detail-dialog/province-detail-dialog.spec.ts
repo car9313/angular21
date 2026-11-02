@@ -4,10 +4,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 
 import { ProvinceDetailDialog } from './province-detail-dialog';
-import { ProvinceRepository } from '@/app/modules/nomenclators/provinces/infraestructure/http/province-repository';
+import { ProvinceRepository } from '@/app/modules/nomenclators/provinces/infrastructure/http/province-repository';
 import { Province } from '@/app/modules/nomenclators/provinces/domain/province';
 
-const PINAR: Province = { code: 'PR', descShort: 'PRI', descLong: 'Pinar del Río', active: true };
+const PINAR: Province = { code: 'PR', shortName: 'PRI', name: 'Pinar del Río', active: true };
 
 describe('ProvinceDetailDialog', () => {
     let fixture: ComponentFixture<ProvinceDetailDialog>;

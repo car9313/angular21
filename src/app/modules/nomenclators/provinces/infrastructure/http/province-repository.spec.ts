@@ -7,13 +7,15 @@ import { firstValueFrom } from 'rxjs';
 import { ProvinceRepository } from './province-repository';
 import { ConfigService } from '@/app/core/services/config.service';
 import { defaultQuery } from '@/app/core/interfaces/query-params';
-import { Province } from '../../domain/province';
+import { Province, ProvinceInput } from '../../domain/province';
+import { ProvinceDto } from '../dtos/province.dto';
 
 const FAKE_SERVER_API = 'http://test-api';
 const PROVINCES_URL = `${FAKE_SERVER_API}/api/province`;
 
-const PINAR: Province = { code: 'PR', descShort: 'PRI', descLong: 'Pinar del Río', active: true };
-const PAYLOAD = { code: 'PR', descShort: 'PRI', descLong: 'Pinar del Río' };
+const PINAR_DTO: ProvinceDto = { code: 'PR', descShort: 'PRI', descLong: 'Pinar del Río', active: true };
+const PINAR: Province = { code: 'PR', shortName: 'PRI', name: 'Pinar del Río', active: true };
+const PINAR_INPUT: ProvinceInput = { code: 'PR', shortName: 'PRI', name: 'Pinar del Río' };
 
 describe('ProvinceRepository', () => {
     let repository: ProvinceRepository;
@@ -36,7 +38,7 @@ describe('ProvinceRepository', () => {
         httpMock.verify();
     });
 
-    it('lists through GET /api/province/all with the pagination params', async () => {
+    it('lists through GET /api/province/all and maps the wire DTO to the domain', async () => {
         const done = firstValueFrom(repository.list(defaultQuery()));
 
         const req = await vi.waitFor(() => httpMock.expectOne((r) => r.url === `${PROVINCES_URL}/all`));
@@ -44,9 +46,11 @@ describe('ProvinceRepository', () => {
         expect(req.request.params.get('Pag.Page')).toBe('1');
         expect(req.request.params.get('Pag.PageSize')).toBe('5');
 
-        req.flush({ objects: [PINAR], meta: { currentPage: 1, nextPage: null, prevPage: null, totalPage: 1, totalCount: 1 } });
+        req.flush({ objects: [PINAR_DTO], meta: { currentPage: 1, nextPage: null, prevPage: null, totalPage: 1, totalCount: 1 } });
 
-        expect((await done).objects).toEqual([PINAR]);
+        const response = await done;
+        expect(response.objects).toEqual([PINAR]);
+        expect(response.objects[0]).not.toHaveProperty('descLong');
     });
 
     it('gets the detail through GET /api/province/{code}', async () => {
@@ -54,29 +58,42 @@ describe('ProvinceRepository', () => {
 
         const req = await vi.waitFor(() => httpMock.expectOne(`${PROVINCES_URL}/PR`));
         expect(req.request.method).toBe('GET');
-        req.flush(PINAR);
+        req.flush(PINAR_DTO);
 
         expect(await done).toEqual(PINAR);
     });
 
-    it('creates through POST /api/province with the domain payload', async () => {
-        const done = firstValueFrom(repository.create(PAYLOAD));
+    it('loads the select page through GET /api/province with Cursor and Filter', async () => {
+        const done = firstValueFrom(repository.listForSelect('cursor-1', 'pinar'));
+
+        const req = await vi.waitFor(() => httpMock.expectOne((r) => r.url === PROVINCES_URL));
+        expect(req.request.method).toBe('GET');
+        expect(req.request.params.get('Cursor')).toBe('cursor-1');
+        expect(req.request.params.get('Filter')).toBe('pinar');
+
+        req.flush({ objects: [PINAR_DTO], nextCursor: 'cursor-2' });
+
+        expect(await done).toEqual({ objects: [PINAR], nextCursor: 'cursor-2' });
+    });
+
+    it('creates through POST /api/province with the wire payload', async () => {
+        const done = firstValueFrom(repository.create(PINAR_INPUT));
 
         const req = await vi.waitFor(() => httpMock.expectOne(PROVINCES_URL));
         expect(req.request.method).toBe('POST');
-        expect(req.request.body).toEqual(PAYLOAD);
-        req.flush(PINAR);
+        expect(req.request.body).toEqual({ code: 'PR', descShort: 'PRI', descLong: 'Pinar del Río' });
+        req.flush(PINAR_DTO);
 
         expect(await done).toEqual(PINAR);
     });
 
-    it('updates through PUT /api/province/{code}', async () => {
-        const done = firstValueFrom(repository.update('PR', PAYLOAD));
+    it('updates through PUT /api/province/{code} with the wire payload', async () => {
+        const done = firstValueFrom(repository.update('PR', PINAR_INPUT));
 
         const req = await vi.waitFor(() => httpMock.expectOne(`${PROVINCES_URL}/PR`));
         expect(req.request.method).toBe('PUT');
-        expect(req.request.body).toEqual(PAYLOAD);
-        req.flush(PINAR);
+        expect(req.request.body).toEqual({ code: 'PR', descShort: 'PRI', descLong: 'Pinar del Río' });
+        req.flush(PINAR_DTO);
 
         expect(await done).toEqual(PINAR);
     });

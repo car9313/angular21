@@ -45,8 +45,8 @@ export class ProvincesPage implements OnInit {
 
     readonly columns: ColumnConfig<Province>[] = [
         { field: 'code', header: 'Código', sortable: false },
-        { field: 'descShort', header: 'Acrónimo' },
-        { field: 'descLong', header: 'Nombre', sortable: false },
+        { field: 'shortName', header: 'Acrónimo' },
+        { field: 'name', header: 'Nombre', sortable: false },
         {
             field: 'active',
             header: 'Activo',
