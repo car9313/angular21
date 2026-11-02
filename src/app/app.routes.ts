@@ -3,6 +3,8 @@ import { AppLayout } from './layout/component/app.layout';
 import { Notfound } from './shared/pages/notfound';
 import { authGuard } from './core/guards/auth.guard';
 import { permissionGuard } from './core/guards/permission.guard';
+import { guestGuard } from '@/app/core/guards/guest.guard';
+import { CONST_ROUTES } from '@/app/core/constants/route-paths';
 
 export const appRoutes: Routes = [
     {
@@ -18,30 +20,41 @@ export const appRoutes: Routes = [
         children: [
             { path: '', redirectTo: 'panel-principal', pathMatch: 'full' },
             {
-                path: 'panel-principal',
-                loadComponent: () => import('./pages/panel-principal').then((m) => m.PanelPrincipal),
+                path: CONST_ROUTES.panelPrincipal,
+                loadComponent: () => import('./pages/panel-principal/panel-principal').then((m) => m.PanelPrincipal),
                 data: { title: 'Inicio', breadcrumb: 'Panel principal' }
             },
+
             {
-                path: 'seguridad',
-                loadChildren: () => import('./modules/security/roles/roles.routes').then((m) => m.default),
-                data: { title: 'Seguridad' }
+                path: CONST_ROUTES.nomencladores,
+                loadChildren: () => import('./modules/nomenclators/nomenclators.routes').then((m) => m.nomenclatorRoutes),
+                data: {
+                    breadcrumb: 'Nomencladores'
+                }
             },
             {
-                // Angular merges same-path route configs: this second entry does
-                // NOT touch the roles one above.
-                path: 'seguridad',
-                loadChildren: () => import('./modules/security/settings/settings.routes').then((m) => m.default),
-                data: { title: 'Seguridad' }
+                path: CONST_ROUTES.seguridad,
+                loadChildren: () => import('./modules/security/security.routes').then((m) => m.segurityRoutes),
+                data: {
+                    breadcrumb: 'Seguridad'
+                }
             },
             {
-                // Angular merges same-path route configs: this third entry does
-                // NOT touch the roles/settings ones above.
-                path: 'seguridad',
-                loadChildren: () => import('./modules/security/users/users.routes').then((m) => m.default),
-                data: { title: 'Seguridad' }
+                path: CONST_ROUTES.perfil,
+                loadComponent: () => import('./modules/user-profile/user-profile.component').then((m) => m.UserProfileComponent),
+                data: {
+                    breadcrumb: 'Mi Perfil',
+                    title: 'Mi Perfil'
+                }
             }
         ]
+    },
+    {
+        path: `${CONST_ROUTES.cambiarContrasena}/:token`,
+        loadComponent: () => import('./modules/change-password/presentation/pages/change-password.component').then((m) => m.ChangePasswordComponent),
+        canActivate: [guestGuard], // o un guard dedicado
+        data: { title: 'Cambiar contraseña' }
+        // SIN resource/actions → sin permissionGuard
     },
     { path: 'notfound', component: Notfound },
     { path: 'auth', loadChildren: () => import('./pages/auth/auth.routes') },

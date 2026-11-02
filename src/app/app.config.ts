@@ -17,7 +17,14 @@ export const appConfig: ApplicationConfig = {
         // misleading "wrong credentials" client-side error and no request
         // sent). Session restoration is NOT here — it is owned by the
         // guards' one-shot barrier (SessionReadyService).
-        provideAppInitializer(() => inject(ConfigService).load()),
+        provideAppInitializer(async () => {
+            try {
+                await inject(ConfigService).load();
+            } catch (err) {
+                console.error('[bootstrap] config no se pudo cargar', err);
+                throw err;   // ← bootstrap falla visible, no sigue con config nula
+            }
+        }),
         provideRouter(appRoutes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' }), withEnabledBlockingInitialNavigation()),
         provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
         provideZonelessChangeDetection(),
