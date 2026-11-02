@@ -34,7 +34,7 @@ export const appRoutes: Routes = [
             },
             {
                 path: CONST_ROUTES.seguridad,
-                loadChildren: () => import('./modules/security/security.routes').then((m) => m.segurityRoutes),
+                loadChildren: () => import('./modules/security/security.routes').then((m) => m.securityRoutes),
                 data: {
                     breadcrumb: 'Seguridad'
                 }

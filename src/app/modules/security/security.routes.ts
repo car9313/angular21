@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { CONST_ROUTES } from '@/app/core/constants/route-paths';
 
-export const segurityRoutes: Routes = [
+export const securityRoutes: Routes = [
     {
         path: CONST_ROUTES.roles, // "roles"  → /seguridad/roles
         loadChildren: () => import('./roles/roles.routes').then((m) => m.default),
