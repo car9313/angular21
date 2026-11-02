@@ -10,13 +10,13 @@
 
 | ID | Tarea | Estado | Criterio de aceptación |
 |---|---|---|---|
-| GIT-001 | Re-stagear todo con paths explícitos | [ ] | `git status` sin `AM`/`RM` ambiguos; índice revisado archivo por archivo |
+| GIT-001 | Re-stagear todo con paths explícitos | [x] | `git reset` + `git add -A -- <paths>` por lote; `git status` limpio el 2026-11-02 |
 | GIT-002 | Decidir `src/assets/config.development.json` | [x] | En desarrollo apunta a `http://172.22.10.2:1235`; se versiona tal cual (decisión 2026-11-02) |
-| GIT-003 | Sacar del índice los logs trackeados | [ ] | `l4.log`, `ngtest-err.log`, `ngtest.log`, `test3.log`, `test5.log` fuera de git |
-| GIT-004 | Decidir lockfile | [ ] | Solo uno de `package-lock.json` / `pnpm-lock.yaml` versionado |
-| GIT-005 | Commits por unidad lógica | [ ] | Batching sugerido: bootstrap/config, session, audits, audits/filters, shared/core, users, docs |
-| GIT-006 | Push de los commits locales | [ ] | `origin/feat/core-foundation` al día (hoy hay 15 pendientes) |
-| DOC-012 | Revisar y commitear la base documental | [ ] | `ESTADO`, `AGENTS`, `MEMORIA`, `PREFERENCIAS`, `PLAN`, `tareas`, `DECISIONES`, `CONTRATOS`, `TESTING` coherentes |
+| GIT-003 | Sacar del índice los logs trackeados | [ ] | `l4.log`, `ngtest-err.log`, `ngtest.log`, `test3.log`, `test5.log` fuera de git (siguen trackeados) |
+| GIT-004 | Decidir lockfile | [ ] | Solo uno de `package-lock.json` / `pnpm-lock.yaml` versionado (hoy conviven los dos) |
+| GIT-005 | Commits por unidad lógica | [x] | 14 commits por área el 2026-11-02 (build, config, core x2, shared, layout, auth, security x2, nomenclators, certification, routes, test-setup, docs) |
+| GIT-006 | Push de los commits locales | [x] | `origin/feat/core-foundation` al día: `68e8c6d..ead8b38` (29 commits) |
+| DOC-012 | Revisar y commitear la base documental | [x] | Base documental commiteada en `ead8b38` (AGENTS, ESTADO, docs/*) |
 
 ## 2. Nomencladores/Países (P1)
 
@@ -83,6 +83,7 @@
 | TEST-002 | Specs de stores de pantalla restantes | [ ] | `role-list.store`, `user-list.store`, `audit-list.store`, `province-list.store`, `municipality-list.store` |
 | TEST-003 | Specs de componentes con lógica restantes | [ ] | `role-table`, `user-table`, `audit.page`, `filter-select`, `filter-datepicker`, `action-toolbar`, `permissions-tree`, `async-select` |
 | TEST-004 | Specs de layout restantes | [ ] | `app.sidebar` (outside click) y `app.layout` |
+| TEST-005 | Resto de servicios/componentes sin spec | [ ] | `rehydrate-identity`, `identity-hydrator`, `fingerprint.service`, módulo `change-password`, `user-profile`, `search`, `empty-state`, `base-table`, `quick-access` |
 
 ## 6. Fases siguientes (P2)
 
@@ -95,6 +96,7 @@
 
 ## 7. Hecho recientemente
 
+- **2026-11-02 · Commit y push:** 14 commits por unidad lógica (`c74e28b..ead8b38`) y push a `origin/feat/core-foundation` (`68e8c6d..ead8b38`, 29 commits). Árbol limpio; gates verdes antes de subir.
 - **2026-11-02 · Suite reparada y ampliada:** 429/429 en 79 archivos, lint 0 y build OK. Se alinearon 12 specs con los contratos actuales (`code` como identidad en países/provincias/municipios, `selectId` explícito, dominio `descShort/descLong`, `pendingCode`, `PageChangeEvent`), se eliminaron dos `should create` huérfanos de certification, se añadió `src/test-setup.ts` (polyfill de storage) y specs nuevos para features de store, helpers, menú y repositorios de usuarios/roles/nomencladores. También se corrigieron copies: toggler del menú ligado a `isExpanded()`, "Detalle del país" → provincia/municipio, `municipios` en el empty state, mensajes de éxito de provincia, ids `province-*`/`municipality-*` y mensaje de error del store de municipios.
 - Fase 2.5 completa: roles, usuarios, auditorías y configuración (último verde: 2026-10-07, 227/227; superado el 2026-11-02 con 429/429).
 - `withServerTable` + `withServerTableWrites` construidos y migrados.
