@@ -1,6 +1,10 @@
 <div class="flex items-center justify-end gap-2">
+    <!-- type=submit: dispara (ngSubmit) del form padre; (apply) queda para
+         padres que prefieran escuchar el evento en vez de ngSubmit. -->
     <p-button type="submit" icon="pi pi-filter" [rounded]="true" [outlined]="!hasActiveFilters()" [disabled]="!hasFilters()" pTooltip="Aplicar filtros" tooltipPosition="top" (click)="onApply()" />
     @if (hasFilters() || hasActiveFilters()) {
-        <p-button severity="danger" type="submit" icon="pi pi-filter-slash" [rounded]="true" [outlined]="!hasActiveFilters()" pTooltip="Limpiar filtros" tooltipPosition="top" (click)="onReset()" />
+        <!-- type=button: NUNCA submit — si lo fuera, además de resetear
+             dispararía (ngSubmit) y reaplicaría los filtros recién limpiados. -->
+        <p-button severity="danger" type="button" icon="pi pi-filter-slash" [rounded]="true" [outlined]="!hasActiveFilters()" pTooltip="Limpiar filtros" tooltipPosition="top" (click)="onReset()" />
     }
 </div>

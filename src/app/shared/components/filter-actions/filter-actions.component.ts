@@ -18,7 +18,6 @@ export class FilterActionsComponent {
         this.apply.emit();
     };
     onReset = () => {
-        console.log('onReset()2');
         this.resetFilters.emit();
     };
 }

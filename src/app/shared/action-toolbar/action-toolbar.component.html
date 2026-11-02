@@ -1,0 +1,62 @@
+<div class="action-toolbar" [class.hidden]="!shouldShow()">
+    <div class="action-toolbar__left">
+        <ng-template #buttonTpl let-btn>
+            @if (!btn.permission) {
+                <app-icon-button
+                    [label]="btn.label"
+                    [icon]="btn.icon"
+                    [tooltip]="btn.tooltip ?? ''"
+                    [severity]="btn.severity"
+                    [rounded]="btn.rounded ?? true"
+                    [outlined]="btn.outlined ?? false"
+                    [disabled]="isDisabled(btn)"
+                    [loading]="btn.loading ?? false"
+                    [ariaLabel]="btn.ariaLabel"
+                    [class.is-bouncing]="isBouncing(btn)"
+                    (clicked)="handleAction(btn)"
+                    />
+            } @else {
+                <ng-container
+                    *appHasPermission="let ok; resource: btn.permission.resource, actions: btn.permission.actions">
+                    <app-icon-button
+                        [label]="btn.label"
+                        [icon]="btn.icon"
+                        [tooltip]="btn.tooltip ?? ''"
+                        [severity]="btn.severity"
+                    [rounded]="btn.rounded ?? true"
+                    [outlined]="btn.outlined ?? true"
+                    [disabled]="isDisabled(btn)"
+                    [loading]="btn.loading ?? false"
+                    [ariaLabel]="btn.ariaLabel"
+                    [class.is-bouncing]="isBouncing(btn)"
+                    (clicked)="handleAction(btn)"
+                    />
+                </ng-container>
+            }
+        </ng-template>
+
+
+        @for (btn of staticButtons(); track btn.id) {
+            <ng-container *ngTemplateOutlet="buttonTpl; context: { $implicit: btn }"></ng-container>
+        }
+
+        @if (selectionLabel(); as label) {
+            <div class="action-toolbar__selected">
+                <div class="action-toolbar__selected-info">
+                    <span class="action-toolbar__selected-label">{{ label }}</span>
+                    <span class="action-toolbar__selected-name" [pTooltip]="chipName() ?? 'Ninguna'" tooltipPosition="top">
+                        {{ chipName() ?? 'Ninguna' }}
+                    </span>
+                </div>
+            </div>
+        }
+
+        @for (btn of selectionButtons(); track btn.id) {
+            <ng-container *ngTemplateOutlet="buttonTpl; context: { $implicit: btn }"></ng-container>
+        }
+    </div>
+
+    <div class="action-toolbar__right">
+        <ng-content select="[toolbar-end]"></ng-content>
+    </div>
+</div>
