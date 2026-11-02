@@ -1,0 +1,50 @@
+<p-dialog
+    [visible]="visible()"
+    (visibleChange)="visible.set($event)"
+    (onHide)="cancelled.emit()"
+    [modal]="true"
+    [closable]="!store.saving()"
+    [closeOnEscape]="!store.saving()"
+    [focusOnShow]="true"
+    [style]="{ width: '450px' }"
+    [header]="title()"
+>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-2">
+        <label for="province-name">Nombre</label>
+        <input
+            pInputText
+            id="province-name"
+            formControlName="name"
+            placeholder="Ej. Pinar del Río"
+            autocomplete="off"
+            class="w-full"
+            [ngClass]="{
+                'ng-invalid ng-dirty': form.controls.name.invalid && (form.controls.name.dirty || form.controls.name.touched)
+            }"
+        />
+        @if (form.controls.name.invalid && (form.controls.name.dirty || form.controls.name.touched)) {
+            <small class="block mt-1 text-red-500 dark:text-red-400">El nombre es requerido.</small>
+        }
+
+        <label for="province-code" class="mt-2">Código</label>
+        <input
+            pInputText
+            id="province-code"
+            formControlName="code"
+            placeholder="Ej. PR"
+            autocomplete="off"
+            class="w-full"
+            [ngClass]="{
+                'ng-invalid ng-dirty': form.controls.code.invalid && (form.controls.code.dirty || form.controls.code.touched)
+            }"
+        />
+        @if (form.controls.code.invalid && (form.controls.code.dirty || form.controls.code.touched)) {
+            <small class="block mt-1 text-red-500 dark:text-red-400">El código es requerido.</small>
+        }
+
+        <div class="flex justify-end gap-2 mt-4">
+            <p-button label="Cancelar" [text]="true" [disabled]="store.saving()" type="button" (onClick)="cancelled.emit()" />
+            <p-button label="Guardar" icon="pi pi-check" [loading]="store.saving()" type="submit" />
+        </div>
+    </form>
+</p-dialog>

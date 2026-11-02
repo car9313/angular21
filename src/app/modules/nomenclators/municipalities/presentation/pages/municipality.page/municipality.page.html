@@ -1,0 +1,39 @@
+@if (store.modalMode() === 'add') {
+    <app-municipality-dialog (saved)="onDialogSaved()" (cancelled)="store.closeModalAndClearSelection()" />
+}
+
+@if (store.modalMode() === 'edit') {
+    @if (store.selectedItem(); as municipality) {
+        <app-municipality-dialog [municipality]="municipality" (saved)="onDialogSaved()" (cancelled)="store.closeModalAndClearSelection()" />
+    }
+}
+@if (store.modalMode() === 'detail') {
+    @if (store.selectedId(); as code) {
+        <app-municipality-detail-dialog [municipalityCode]="code" (cancelled)="store.closeModalAndClearSelection()" />
+    }
+}
+
+<div class="card flex flex-col gap-8">
+    <div class="flex justify-between items-center">
+        <app-icon-button *appHasPermission="let ok; resource: RESOURCES.Nomenclators; actions: [ACTIONS.Create]" icon="pi pi-plus" [tooltip]="'Adicionar'" severity="primary" extraClass="shadow-md download-btn" (clicked)="store.openAdd()" />
+        <app-search [searchText]="store.searchText()" (searchSubmitted)="store.setSearchAndReload($event)"></app-search>
+    </div>
+
+    <app-municipality-table
+        [items]="items()"
+        [columns]="columns"
+        [rowActions]="rowActions()"
+        [selectedCode]="store.selectedId()"
+        [loading]="store.loading()"
+        [error]="store.error()"
+        [totalRecords]="store.meta().totalCount"
+        [currentPage]="store.currentPage()"
+        [pageSize]="store.pageSize()"
+        [searchText]="store.searchText()"
+        [canToggle]="canToggle()"
+        [pendingCode]="store.pendingSet()"
+        (selectRow)="store.select($event.code)"
+        (pageChange)="onPageChange($event)"
+        (toggleActive)="onToggleActive($event)"
+    />
+</div>

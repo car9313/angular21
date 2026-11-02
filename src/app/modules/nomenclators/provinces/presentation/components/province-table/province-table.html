@@ -1,0 +1,132 @@
+<p-table
+    [value]="items()"
+    [first]="first()"
+    [rows]="pageSize()"
+    [totalRecords]="totalRecords()"
+    [columns]="columns()"
+    [loading]="loading()"
+    [lazy]="true"
+    [paginator]="true"
+    [rowHover]="true"
+    size="small"
+    [showCurrentPageReport]="true"
+    [rowsPerPageOptions]="visibleRowsPerPageOptions()"
+    [tableStyle]="{ 'min-width': '100%' }"
+    currentPageReportTemplate="Mostrando del {first} al {last} de {totalRecords} países"
+    selectionMode="single"
+    [selection]="selectedItem()"
+    dataKey="code"
+    (onLazyLoad)="onLazyLoad($event)"
+    (onRowSelect)="onRowSelect($event.data)"
+>
+    <ng-template #header>
+        <tr>
+            @for (col of columns(); track col.field) {
+                <th
+                    [pSortableColumn]="col.sortable ? col.field : undefined"
+                    [ngClass]="col.className"
+                >
+                    {{ col.header }}
+                    @if (col.sortable) {
+                        <p-sortIcon [field]="col.field" />
+                    }
+                </th>
+            }
+            @if (hasActionColumn()) {
+                <th style="min-width: 10%">Acciones</th>
+            }
+        </tr>
+    </ng-template>
+
+    <ng-template #body let-country>
+        <tr [pSelectableRow]="country">
+            @for (col of columns(); track col.field) {
+                <td [ngClass]="col.className">
+                    @if (col.field === 'active') {
+                        <p-toggleswitch
+                            [ngModel]="country.active"
+                            (ngModelChange)="onToggleActive(country, $event)"
+                            [disabled]="!canToggle() || isToggling(country.id)"
+                            [ariaLabel]="'Activar o desactivar ' + country.name"
+                        >
+                            <ng-template #handle let-checked="checked">
+                                <i [ngClass]="['!text-xs', 'pi', checked ? 'pi-check' : 'pi-times']"></i>
+                            </ng-template>
+                        </p-toggleswitch>
+                    } @else if (col.cellTemplate) {
+                        <span [innerHTML]="col.cellTemplate(country)"></span>
+                    } @else {
+                        {{ country[col.field] }}
+                    }
+                </td>
+            }
+
+            @if (menuFor(country).length > 0) {
+                <td>
+                    <p-menu
+                        #menu
+                        [model]="menuFor(country)"
+                        [popup]="true"
+                        appendTo="body"
+                        (onShow)="onMenuShow(country)"
+                        (onHide)="onMenuHide(country)"
+                    />
+
+                    <p-button
+                        [text]="true"
+                        [rounded]="true"
+                        severity="secondary"
+                        [ariaLabel]="'Acciones de ' + country.name"
+                        pTooltip="Listado de Acciones"
+                        tooltipPosition="top"
+                        [class.active]="isMenuOpen(country)"
+                        (click)="menu.toggle($event)"
+                    >
+                        <i class="pi pi-ellipsis-v"></i>
+                    </p-button>
+                </td>
+            }
+        </tr>
+    </ng-template>
+
+    <ng-template #loadingbody>
+        @for (row of skeletonRows; track row) {
+            <tr>
+                @for (col of columns(); track col.field) {
+                    <td><p-skeleton [style]="{ height: '20px' }" /></td>
+                }
+                @if (hasActionColumn()) {
+                    <td><p-skeleton [style]="{ height: '20px' }" /></td>
+                }
+            </tr>
+        }
+    </ng-template>
+
+    <ng-template #emptymessage>
+        <tr>
+            <td
+                [attr.colspan]="columns().length + (hasActionColumn() ? 1 : 0)"
+                class="empty-message"
+            >
+                @if (error()) {
+                    <app-empty-state
+                        type="error"
+                        title="Error de carga de datos"
+                        description="No se pudieron cargar los países. Por favor, intente nuevamente."
+                    />
+                } @else if (searchText()) {
+                    <app-empty-state
+                        icon="pi pi-search"
+                        title="Sin resultados"
+                        [description]="emptySearchDescription()"
+                    />
+                } @else {
+                    <app-empty-state
+                        title="No hay países todavía"
+                        description="Crea el primer país con el botón «Nuevo País»."
+                    />
+                }
+            </td>
+        </tr>
+    </ng-template>
+</p-table>

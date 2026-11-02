@@ -1,0 +1,42 @@
+<p-dialog
+    [visible]="true"
+    (visibleChange)="onVisibleChange($event)"
+    (onHide)="cancelled.emit()"
+    [modal]="true"
+    [header]="'Detalle del país'"
+    [focusOnShow]="true"
+    [style]="{ width: '600px' }"
+>
+    @if (loading()) {
+        <app-country-details-skeleton />
+    } @else if (errorMsg()) {
+        <div class="flex flex-column justify-content-center align-items-center p-5 error-container">
+            <i class="pi pi-exclamation-triangle text-error" style="font-size: 3rem"></i>
+            <p class="mt-3 text-center">{{ errorMsg() }}</p>
+            <p-button label="Reintentar" icon="pi pi-refresh" (click)="retryLoad()" class="mt-3" />
+        </div>
+    } @else if (country(); as data) {
+        <div class="flex flex-col gap-4">
+            <div class="flex gap-2 items-center">
+                <span class="font-bold">Código:</span>
+                <p class="dark:text-gray-300 text-gray-600">{{ data.code }}</p>
+            </div>
+            <div class="flex gap-2 items-center">
+                <span class="font-bold">Nombre:</span>
+                <p class="dark:text-gray-300 text-gray-600">{{ data.name }}</p>
+            </div>
+            <div class="flex gap-2 items-center">
+                <span class="font-bold">Código:</span>
+                <p class="dark:text-gray-300 text-gray-600">{{ data.code }}</p>
+            </div>
+            <div class="flex gap-2 items-center">
+                <span class="font-bold">Estado:</span>
+                <p class="dark:text-gray-300 text-gray-600">{{ data.active ? 'Activo' : 'Inactivo' }}</p>
+            </div>
+        </div>
+    }
+
+    <ng-template #footer>
+        <p-button label="Cerrar" icon="pi pi-times" (click)="close()" />
+    </ng-template>
+</p-dialog>
