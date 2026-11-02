@@ -3,6 +3,7 @@ import { AuthRepository } from '../infrastructure/http/auth-repository';
 import { TokenAuthService } from '../../../core/services/token-auth.service';
 import { SessionStore } from '../../../core/store/session.store';
 import { IdentityHydrator } from './identity-hydrator';
+import { HttpErrorResponse } from '@angular/common/http';
 
 /**
  * Session rehydration at app boot.
@@ -30,19 +31,23 @@ export class RestoreSessionUseCase {
 
     async execute(): Promise<void> {
         await this.tokenAuth.restore();
-
         const accessToken = await this.tokenAuth.getAccessToken();
-        if (!accessToken) {
-            return;
-        }
+        if (!accessToken) return;
 
         try {
             this.hydrator.apply(await this.repository.getCurrentUser());
-        } catch {
-            // Tokens present but unusable (expired both, revoked, API down
-            // with 401/418): fail closed to a clean logged-out state.
-            await this.tokenAuth.clear();
-            this.session.reset();
+        } catch (err) {
+            console.error('[restore] getCurrentUser falló', err);
+
+            // Solo destruir la sesión si el backend dijo explícitamente que no es válida.
+            if (err instanceof HttpErrorResponse && (err.status === 401 || err.status === 418)) {
+                await this.tokenAuth.clear();
+                this.session.reset();
+                return;
+            }
+
+            // Cualquier otro error (config, red, TypeError, AbortError de fetch):
+            // NO borrar tokens. El próximo boot / navegación reintenta.
         }
     }
 }

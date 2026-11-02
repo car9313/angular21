@@ -24,8 +24,8 @@ export class AuthRepository {
 
         return response.body;
     }
-
     async getCurrentUser(): Promise<SessionUserDto> {
-        return lastValueFrom(this.http.get<SessionUserDto>(this.config.urlWith('/api/auth/user/current')));
+        const url = this.config.urlWith('/api/auth/user/current');
+        return lastValueFrom(this.http.get<SessionUserDto>(url));
     }
 }

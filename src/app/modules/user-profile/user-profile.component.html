@@ -1,0 +1,101 @@
+<!-- User Card -->
+@if(userProfile(); as user){
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
+        <!-- Avatar & Basic Info -->
+        <div class="lg:col-span-1">
+            <p-card class="shadow-lg rounded-xl overflow-hidden">
+                <div class="flex flex-col items-center p-6">
+                    <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white text-3xl font-bold mb-4">
+                        {{user.username.charAt(0).toUpperCase()}}
+                    </div>
+
+                    <h2 class="text-xl font-semibold dark:text-gray-300 text-gray-600 whitespace-pre-wrap mb-1">{{ userProfile()?.fullName }}</h2>
+                    <p class="text-sm dark:text-gray-300 text-gray-600 whitespace-pre-wrap mb-4">&#64;{{ userProfile()?.username }}</p>
+
+                </div>
+            </p-card>
+        </div>
+
+        <!-- Details Section -->
+        <div class="lg:col-span-2">
+            <p-card class="shadow-lg rounded-xl overflow-hidden">
+                <h3 class="text-lg font-semibold mb-4 dark:text-gray-300 text-gray-600 whitespace-pre-wrap">Detalles del Usuario</h3>
+                <p-divider class="my-4"></p-divider>
+
+                <div class="space-y-4">
+                    <!-- Username -->
+                    <div class="flex justify-between py-2 border-b border-gray-100 gap-4">
+                        <span class="font-medium dark:text-gray-300 text-gray-600 whitespace-pre-wrap">Nombre de usuario:</span>
+                        <span class="dark:text-gray-300 text-gray-600 whitespace-pre-wrap">{{ userProfile()?.username }}</span>
+                    </div>
+
+                    <!-- Full Name -->
+                    <div class="flex justify-between py-2 border-b border-gray-100 gap-4">
+                        <span class="font-medium dark:text-gray-300 text-gray-600 whitespace-pre-wrap">Nombre completo:</span>
+                        <span class="dark:text-gray-300 text-gray-600 whitespace-pre-wrap">{{ userProfile()?.fullName }}</span>
+                    </div>
+
+                    <!-- Roles -->
+                    <div class="flex justify-between py-2 border-b border-gray-100 gap-4">
+                        <span class="font-medium dark:text-gray-300 text-gray-600 whitespace-pre-wrap">Roles:</span>
+                        <div class="flex flex-wrap gap-1">
+                            @for (role of roles(); track role) {
+                                <p-tag [value]="role" severity="success" size="small"></p-tag>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+    </div>
+}
+@else {
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Skeleton: Avatar y datos básicos -->
+        <div class="lg:col-span-1">
+            <p-card class="shadow-lg rounded-xl overflow-hidden">
+                <div class="flex flex-col items-center p-6">
+                    <p-skeleton shape="circle" size="6rem" class="mb-4"></p-skeleton>
+                    <p-skeleton width="10rem" class="mb-2"></p-skeleton>
+                    <p-skeleton width="8rem" class="mb-4"></p-skeleton>
+                </div>
+            </p-card>
+        </div>
+
+        <!-- Skeleton: Detalles -->
+        <div class="lg:col-span-2">
+            <p-card class="shadow-lg rounded-xl overflow-hidden">
+                <p-skeleton width="8rem" height="1.5rem" class="mb-4"></p-skeleton>
+                <p-divider class="my-4"></p-divider>
+                <div class="space-y-4">
+                    <div class="flex justify-between py-2">
+                        <p-skeleton width="8rem" height="1rem"></p-skeleton>
+                        <p-skeleton width="10rem" height="1rem"></p-skeleton>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <p-skeleton width="8rem" height="1rem"></p-skeleton>
+                        <p-skeleton width="12rem" height="1rem"></p-skeleton>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <p-skeleton width="8rem" height="1rem"></p-skeleton>
+                        <div class="flex gap-1">
+                            <p-skeleton width="4rem" height="1.25rem"></p-skeleton>
+                            <p-skeleton width="4rem" height="1.25rem"></p-skeleton>
+                        </div>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <p-skeleton width="8rem" height="1rem"></p-skeleton>
+                        <div class="flex gap-1">
+                            <p-skeleton width="5rem" height="1.25rem"></p-skeleton>
+                            <p-skeleton width="6rem" height="1.25rem"></p-skeleton>
+                        </div>
+                    </div>
+                    <div class="flex justify-between py-2">
+                        <p-skeleton width="8rem" height="1rem"></p-skeleton>
+                        <p-skeleton width="4rem" height="1rem"></p-skeleton>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+    </div>
+}

@@ -7,5 +7,5 @@ import { guestGuard } from '../../core/guards/guest.guard';
 export default [
     { path: 'access', component: Access },
     { path: 'error', component: Error },
-    { path: 'login', component: Login, canActivate: [guestGuard] }
+    { path: 'login', component: Login, canActivate: [guestGuard] },
 ] as Routes;

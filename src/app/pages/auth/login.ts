@@ -59,16 +59,98 @@ function extractLoginError(error: unknown): string {
             :host-context(.app-dark) ::ng-deep .p-inputtext {
                 border-color: var(--login-field-border);
             }
+            .p-float-label input:focus ~ label {
+                --tw-text-opacity: 1;
+                color: rgb(5 46 22 / var(--tw-text-opacity, 1));
+            }
+
+            .bgLogin {
+                background: radial-gradient(circle, rgba(44, 147, 114, 1) 0%, rgba(36, 46, 120, 0.9808298319327731) 100%);
+                //  background: radial-gradient(circle, var(--primary-color) 0%, rgba(36,46,120,0.9808298319327731) 100%);
+            }
+
+            /* --- Logo animations --- */
+
+            @keyframes logo-pulse {
+                0%,
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+                50% {
+                    transform: scale(1.05);
+                    opacity: 0.85;
+                }
+            }
+
+            .animate-logo-pulse {
+                animation: logo-pulse 1.2s ease-in-out infinite;
+            }
+
+            @keyframes logo-success {
+                0% {
+                    transform: scale(1);
+                    opacity: 1;
+                    filter: none;
+                }
+                50% {
+                    transform: scale(1.2);
+                    opacity: 1;
+                    filter: drop-shadow(0 0 12px rgba(44, 147, 114, 0.8));
+                }
+                100% {
+                    transform: scale(0.8);
+                    opacity: 0;
+                    filter: drop-shadow(0 0 20px rgba(44, 147, 114, 1));
+                }
+            }
+
+            .animate-logo-success {
+                animation: logo-success 0.7s ease-in-out forwards;
+            }
+
+            @keyframes logo-error {
+                0%,
+                100% {
+                    transform: translateX(0);
+                    filter: none;
+                }
+                10%,
+                30%,
+                50%,
+                70%,
+                90% {
+                    transform: translateX(-6px);
+                }
+                20%,
+                40%,
+                60%,
+                80% {
+                    transform: translateX(6px);
+                }
+                50% {
+                    filter: hue-rotate(300deg) saturate(2);
+                }
+            }
+
+            .animate-logo-error {
+                animation: logo-error 0.5s ease-in-out;
+            }
         `
     ],
     template: `
         <app-floating-configurator />
         <p-toast position="bottom-right" styleClass="custom-toast" [showTransitionOptions]="'300ms'"></p-toast>
 
-        <div class="bg-primary-500/50 dark:bg-[color-mix(in_srgb,var(--primary-color)_10%,transparent)] flex items-center justify-center min-h-screen min-w-screen overflow-hidden bgLogin">
+        <div class="bgLogin flex items-center justify-center min-h-screen min-w-screen overflow-hidden bgLogin">
             <div class="flex flex-col items-center justify-center">
                 <div style="--view-transition-name: login-form-container; border-radius: 40px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">
-                    <div class="w-full bg-primary-50 dark:bg-primary-950 login-card py-20 px-8 sm:px-20 transition-all duration-500 ease-in-out" [class.scale-95]="loginSuccess" [class.opacity-0]="loginSuccess" style="border-radius: 40px; transition-delay: 200ms">
+                    <div
+                        class="w-full bg-primary-50 dark:bg-primary-950 login-card py-20 px-8 sm:px-20 transition-all duration-500 ease-in-out"
+                        [class.scale-95]="loginSuccess"
+                        [class.opacity-0]="loginSuccess"
+                        style="border-radius: 40px; transition-delay: 200ms"
+                    >
                         <div class="text-center mb-8">
                             <img
                                 src="../../../../../assets/img/logos/logo.svg"
@@ -179,6 +261,13 @@ export class Login {
         } catch (error: unknown) {
             if (error instanceof HttpErrorResponse) {
                 // Error HTTP controlado por el backend (ProblemDetails)
+                // ─── AÑADIR ESTA RAMA ────────────────────────────────────────
+                if (error.status === 428) {
+                    const token = error.headers.get('x-change-password-token') ?? '';
+                    await this.router.navigate(['/cambiar-contraseña', token]);
+                    return;
+                }
+
                 this.errorMessage.set(extractLoginError(error));
                 this.notificacionService.verification(error);
             } else {
