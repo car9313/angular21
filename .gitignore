@@ -45,6 +45,11 @@ testem.log
 /*.log
 /testpid.txt
 
+# Solo pnpm: no versionar lockfiles de otros gestores
+/package-lock.json
+/npm-shrinkwrap.json
+/yarn.lock
+
 # System files
 .DS_Store
 Thumbs.db
