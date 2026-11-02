@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { SessionStore } from '../core/store/session.store';
+import { SessionStore } from '../../core/store/session.store';
+import { Card } from 'primeng/card';
 
 /**
  * Post-login home (devueltos' panel-principal equivalent).
@@ -11,7 +12,10 @@ import { SessionStore } from '../core/store/session.store';
     selector: 'app-panel-principal',
     standalone: true,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    template: `
+    imports: [Card],
+    templateUrl: './panel-principal.html',
+    styleUrls: ['./panel-principal.css']
+    /*  template: `
         <div class="border-round-xl surface-card p-6">
             <div class="text-2xl font-medium mb-2">Hola, {{ user()?.fullName ?? 'invitado' }}</div>
             <div class="text-muted-color mb-3">&#64;{{ user()?.username ?? 'sesión anónima' }}</div>
@@ -26,7 +30,7 @@ import { SessionStore } from '../core/store/session.store';
             }
             <div class="text-muted-color mt-3">Sesión iniciada correctamente. El módulo de seguridad llega en la Fase 2.5.</div>
         </div>
-    `
+    `*/
 })
 export class PanelPrincipal {
     private readonly session = inject(SessionStore);
@@ -34,4 +38,14 @@ export class PanelPrincipal {
     readonly user = this.session.user;
 
     readonly roles = computed(() => this.session.user()?.roles ?? []);
+
+    get initials(): string {
+        if (!this.user()) {
+            return 'U';
+        }
+        const firstName = this.user()?.fullName?.trim()?.charAt(0)
+
+        return firstName?.toUpperCase() || 'U';
+    }
+
 }

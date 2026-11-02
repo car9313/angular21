@@ -5,6 +5,7 @@ import { Menu } from 'primeng/menu';
 import { Tooltip } from 'primeng/tooltip';
 import { SessionStore } from '@/app/core/store/session.store';
 import { LogoutService } from '@/app/core/services/logout.service';
+import { Router } from '@angular/router';
 
 function initialsOf(fullName: string): string {
     return fullName
@@ -43,7 +44,7 @@ function initialsOf(fullName: string): string {
         @if (user(); as current) {
             <div class="relative">
                 <button type="button" class="layout-topbar-action" (click)="menu.toggle($event)" aria-label="Menú de usuario" pTooltip="Menú de usuario" tooltipPosition="bottom" appendTo="body">
-                 <!--   <span class="user-menu-avatar">{{ initials() }}</span>-->
+                    <!--   <span class="user-menu-avatar">{{ initials() }}</span>-->
                     <i class="pi pi-user"></i>
                 </button>
 
@@ -63,6 +64,7 @@ function initialsOf(fullName: string): string {
     `
 })
 export class UserMenu {
+    private readonly router: Router = inject(Router);
     private readonly session = inject(SessionStore);
     private readonly logoutService = inject(LogoutService);
 
@@ -76,6 +78,16 @@ export class UserMenu {
     readonly rolesLabel = computed(() => this.session.user()?.roles.join(', ') ?? '');
 
     readonly menuItems = computed<MenuItem[]>(() => [
+        {
+            label: 'Perfil',
+            icon: 'pi pi-user',
+            command: () => {
+                this.router
+                    .navigate(['/perfil'])
+                    .then()
+                    .catch(() => undefined);
+            }
+        },
         {
             label: 'Cerrar sesión',
             icon: 'pi pi-sign-out',

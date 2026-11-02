@@ -8,7 +8,10 @@
     top: 0;
     width: 100%;
     padding: 0 2rem;
-    background-color: var(--primary-color);
+   /* background-color: var(--primary-color);*/
+    background: radial-gradient(circle, rgba(44,147,114,1) 0%, rgba(36,46,120,0.9808298319327731) 100%);
+    //background-color: var(--surface-card);
+    transition: left var(--layout-section-transition-duration);
     // Design decision: glyphs on the primary bar are white, so hover and focus
     // are white too. Honest caveat: white on emerald-500 measures 2.56:1 (below
     // WCAG 1.4.11's 3:1). If AA is ever required, darken the bar to primary-700
@@ -23,9 +26,11 @@
     align-items: center;
 
     .layout-topbar-logo-container {
-        width: 20rem;
         display: flex;
         align-items: center;
+        flex: 1;
+        min-width: 0;
+        gap: 0.5rem;
     }
 
     .layout-topbar-logo {

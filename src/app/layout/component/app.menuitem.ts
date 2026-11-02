@@ -1,16 +1,10 @@
-import { Component, computed, inject, input, signal, ChangeDetectionStrategy, OnInit, AfterViewInit } from '@angular/core';
-import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { Component, computed, inject, input, signal, ChangeDetectionStrategy, afterNextRender } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { NgClass } from '@angular/common';
 import { RippleModule } from 'primeng/ripple';
 import { MenuItem } from 'primeng/api';
 import { LayoutService } from '@/app/layout/service/layout.service';
-import { filter } from 'rxjs/operators';
 
-/**
- * Menu item shape used by the layout menu. Extends PrimeNG's MenuItem with the
- * layout-specific keys (path, class, badgeClass) as real properties so they can
- * be accessed with dot-notation instead of the MenuItem index signature.
- */
 interface AppMenuItem extends MenuItem {
     path?: string;
     class?: string;
@@ -19,175 +13,150 @@ interface AppMenuItem extends MenuItem {
 
 @Component({
     selector: '[app-menuitem]',
-    imports: [CommonModule, RouterModule, RippleModule],
+    imports: [RouterModule, NgClass, RippleModule],
     template: `
         @if (root() && isVisible()) {
             <div class="layout-menuitem-root-text">{{ item().label }}</div>
         }
-        @if ((!hasRouterLink() || hasChildren()) && isVisible()) {
-            <a [attr.href]="item().url" (click)="itemClick($event)" [ngClass]="item().class" [attr.target]="item().target" tabindex="0" pRipple>
-                <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
-                <span class="layout-menuitem-text">{{ item().label }}</span>
-                @if (hasChildren()) {
-                    <i class="pi pi-fw pi-angle-down layout-submenu-toggler"></i>
-                }
-            </a>
+
+        @if (isVisible()) {
+            @if (hasRouterLink() && !hasChildren()) {
+                <a
+                    (click)="itemClick($event)"
+                    [ngClass]="item().class"
+                    [routerLink]="item().routerLink"
+                    routerLinkActive="active-route"
+                    [routerLinkActiveOptions]="item().routerLinkActiveOptions || { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
+                    [fragment]="item().fragment"
+                    [queryParamsHandling]="item().queryParamsHandling"
+                    [preserveFragment]="item().preserveFragment"
+                    [skipLocationChange]="item().skipLocationChange"
+                    [replaceUrl]="item().replaceUrl"
+                    [state]="item().state"
+                    [queryParams]="item().queryParams"
+                    [attr.target]="item().target"
+                    tabindex="0"
+                    pRipple
+                >
+                    <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
+                    <span class="layout-menuitem-text">{{ item().label }}</span>
+                </a>
+            } @else {
+                <a
+                    [attr.href]="item().url"
+                    (click)="itemClick($event)"
+                    [ngClass]="item().class"
+                    [attr.target]="item().target"
+                    [attr.aria-expanded]="hasChildren() ? isExpanded() : null"
+                    [attr.aria-haspopup]="hasChildren() ? true : null"
+                    [class.submenu-expanded]="hasChildren() && isExpanded()"
+                    tabindex="0"
+                    pRipple
+                >
+                    <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
+                    <span class="layout-menuitem-text">{{ item().label }}</span>
+                    @if (hasChildren()) {
+                        <i class="pi pi-fw pi-angle-down layout-submenu-toggler"></i>
+                    }
+                </a>
+            }
         }
-        @if (hasRouterLink() && !hasChildren() && isVisible()) {
-            <a
-                (click)="itemClick($event)"
-                [ngClass]="item().class"
-                [routerLink]="item().routerLink"
-                routerLinkActive="active-route"
-                [routerLinkActiveOptions]="item().routerLinkActiveOptions || { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
-                [fragment]="item().fragment"
-                [queryParamsHandling]="item().queryParamsHandling"
-                [preserveFragment]="item().preserveFragment"
-                [skipLocationChange]="item().skipLocationChange"
-                [replaceUrl]="item().replaceUrl"
-                [state]="item().state"
-                [queryParams]="item().queryParams"
-                [attr.target]="item().target"
-                tabindex="0"
-                pRipple
-            >
-                <i [ngClass]="item().icon" class="layout-menuitem-icon"></i>
-                <span class="layout-menuitem-text">{{ item().label }}</span>
-                @if (hasChildren()) {
-                    <i class="pi pi-fw pi-angle-down layout-submenu-toggler"></i>
-                }
-            </a>
-        }
-        @if (hasChildren() && isVisible() && (root() || isActive())) {
-            <ul [animate.enter]="initialized() ? 'p-submenu-enter' : null" [animate.leave]="'p-submenu-leave'" [class.layout-root-submenulist]="root()">
-                @for (child of item().items ?? []; track child?.label) {
-                    <li app-menuitem [item]="child" [parentPath]="fullPath()" [root]="false" [class]="child['badgeClass']"></li>
-                }
-            </ul>
+
+        @if (hasChildren() && isVisible()) {
+            <div class="submenu-wrap" [class.initialized]="initialized()" [class.expanded]="isExpanded()">
+                <ul [class.layout-root-submenulist]="root()" [attr.inert]="isExpanded() ? null : ''">
+                    @for (child of item().items ?? []; track child.label) {
+                        <li app-menuitem [item]="child" [parentPath]="fullPath()" [parentKey]="groupKey()" [root]="false" [class]="child['badgeClass']"></li>
+                    }
+                </ul>
+            </div>
         }
     `,
     host: {
         '[class.active-menuitem]': 'isActive()',
         '[class.layout-root-menuitem]': 'root()'
     },
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     styles: [
         `
-            .p-submenu-enter {
-                animation: p-animate-submenu-expand 450ms cubic-bezier(0.86, 0, 0.07, 1) forwards;
+            .submenu-wrap {
+                display: grid;
+                grid-template-rows: 0fr;
             }
-
-            .p-submenu-leave {
-                animation: p-animate-submenu-collapse 450ms cubic-bezier(0.86, 0, 0.07, 1) forwards;
+            .submenu-wrap.initialized {
+                transition: grid-template-rows 220ms cubic-bezier(0.4, 0, 0.2, 1);
             }
-
-            @keyframes p-animate-submenu-expand {
-                from {
-                    max-height: 0;
-                    overflow: hidden;
-                }
-                to {
-                    max-height: 1000px;
-                    overflow: visible;
-                }
+            .submenu-wrap.expanded {
+                grid-template-rows: 1fr;
             }
-
-            @keyframes p-animate-submenu-collapse {
-                from {
-                    max-height: 1000px;
-                    overflow: hidden;
-                }
-                to {
-                    max-height: 0;
-                    overflow: hidden;
-                }
+            .submenu-wrap > ul {
+                overflow: hidden;
+                min-height: 0;
             }
         `
     ]
 })
-export class AppMenuitem implements OnInit, AfterViewInit {
-    layoutService = inject(LayoutService);
-
-    router = inject(Router);
+export class AppMenuitem {
+    private readonly layoutService = inject(LayoutService);
 
     item = input<AppMenuItem>({});
-
     root = input<boolean>(false);
-
     parentPath = input<string | null>(null);
+    parentKey = input<string>('');
 
-    isVisible = computed(() => this.item()?.visible !== false);
+    readonly isVisible = computed(() => this.item()?.visible !== false);
 
-    hasChildren = computed(() => {
-        const items = this.item()?.items;
-        return !!items && items.length > 0;
+    readonly hasChildren = computed(() => (this.item()?.items?.length ?? 0) > 0);
+
+    readonly hasRouterLink = computed(() => {
+        const link = this.item()?.routerLink;
+        return Array.isArray(link) ? link.length > 0 : !!link;
     });
 
-    hasRouterLink = computed(() => !!this.item()?.routerLink);
+    readonly fullPath = computed(() => this.item()?.path ?? this.parentPath());
 
-    fullPath = computed(() => {
-        const itemPath = this.item()?.path;
-        if (!itemPath) return this.parentPath();
-        const parent = this.parentPath();
-        if (parent && !itemPath.startsWith(parent)) {
-            return parent + itemPath;
-        }
-        return itemPath;
+    /** Identificador estable para `expandedGroups`. Cadena de labels, no URLs. */
+    readonly groupKey = computed(() => {
+        const parent = this.parentKey();
+        const label = this.item()?.label ?? '';
+        return parent ? `${parent}/${label}` : label;
     });
 
-    isActive = computed(() => {
+    /** Solo highlight. NO controla expansión. */
+    readonly isActive = computed(() => {
         const activePath = this.layoutService.layoutState().activePath;
-        if (this.item()?.path) {
-            return activePath?.startsWith(this.fullPath() ?? '') ?? false;
+        if (!activePath) return false;
+
+        const item = this.item();
+        if (!item) return false;
+
+        if (item.path) {
+            return activePath.startsWith(this.fullPath() ?? '');
         }
-        return false;
+        return this.hasActiveDescendant(item.items ?? [], activePath);
     });
 
-    initialized = signal<boolean>(false);
+    /** Solo expansión. Depende de `expandedGroups`, no de `isActive`. */
+    readonly isExpanded = computed(() => {
+        if (this.root()) return true;
+        return this.layoutService.layoutState().expandedGroups.includes(this.groupKey());
+    });
+
+    readonly initialized = signal(false);
 
     constructor() {
-        this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
-            if (this.item()?.routerLink) {
-                this.updateActiveStateFromRoute();
-            }
+        afterNextRender(() => this.initialized.set(true));
+    }
+
+    private hasActiveDescendant(items: AppMenuItem[], activePath: string): boolean {
+        return items.some((child) => {
+            const leafPath = child.path ?? child.routerLink?.[0];
+            if (leafPath && activePath.startsWith(leafPath)) return true;
+            return child.items?.length ? this.hasActiveDescendant(child.items, activePath) : false;
         });
     }
 
-    ngOnInit() {
-        if (this.item()?.routerLink) {
-            this.updateActiveStateFromRoute();
-        }
-    }
-
-    ngAfterViewInit() {
-        setTimeout(() => {
-            this.initialized.set(true);
-        });
-    }
-
-    updateActiveStateFromRoute() {
-        const item = this.item();
-        if (!item?.routerLink) return;
-
-        const isRouteActive = this.router.isActive(item.routerLink[0], {
-            paths: 'exact',
-            queryParams: 'ignored',
-            matrixParams: 'ignored',
-            fragment: 'ignored'
-        });
-
-        if (isRouteActive) {
-            const parentPath = this.parentPath();
-            if (parentPath) {
-                this.layoutService.layoutState.update((val) => ({
-                    ...val,
-                    activePath: parentPath
-                }));
-            }
-        }
-    }
-
-    itemClick(event: Event) {
+    itemClick(event: Event): void {
         const item = this.item();
 
         if (item?.disabled) {
@@ -196,30 +165,27 @@ export class AppMenuitem implements OnInit, AfterViewInit {
         }
 
         if (item?.command) {
-            item.command({ originalEvent: event, item: item });
+            item.command({ originalEvent: event, item });
         }
 
         if (this.hasChildren()) {
-            if (this.isActive()) {
-                this.layoutService.layoutState.update((val) => ({
-                    ...val,
-                    activePath: this.parentPath()
-                }));
-            } else {
-                this.layoutService.layoutState.update((val) => ({
-                    ...val,
-                    activePath: this.fullPath(),
-                    menuHoverActive: true
-                }));
-            }
-        } else {
-            this.layoutService.layoutState.update((val) => ({
-                ...val,
-                overlayMenuActive: false,
-                staticMenuMobileActive: false,
-                mobileMenuActive: false,
-                menuHoverActive: false
-            }));
+            event.preventDefault();
+
+            const key = this.groupKey();
+            this.layoutService.layoutState.update((val) => {
+                const expanded = val.expandedGroups;
+                const next = expanded.includes(key) ? expanded.filter((k) => k !== key) : [...expanded, key];
+                return { ...val, expandedGroups: next, menuHoverActive: true };
+            });
+            return;
         }
+
+        this.layoutService.layoutState.update((val) => ({
+            ...val,
+            overlayMenuActive: false,
+            staticMenuMobileActive: false,
+            mobileMenuActive: false,
+            menuHoverActive: false
+        }));
     }
 }

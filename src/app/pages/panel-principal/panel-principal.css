@@ -1,0 +1,27 @@
+:host ::ng-deep {
+    .grid {
+        align-items: stretch;
+    }
+
+p-card.h-full,
+p-card.h-full .p-card,
+p-card.h-full .p-card-body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+    p-card.h-full .p-card-content {
+        flex: 1 1 auto;
+    }
+
+p-card.card-hover .p-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+    p-card.card-hover:hover .p-card {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.18);
+
+    }
+}

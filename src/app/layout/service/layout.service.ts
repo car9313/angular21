@@ -15,6 +15,7 @@ interface LayoutState {
     mobileMenuActive: boolean;
     menuHoverActive: boolean;
     activePath: string | null;
+    expandedGroups: string[];
 }
 
 interface PersistedLayout {
@@ -39,7 +40,8 @@ const DEFAULT_STATE: LayoutState = {
     configSidebarVisible: false,
     mobileMenuActive: false,
     menuHoverActive: false,
-    activePath: null
+    activePath: null,
+    expandedGroups: []
 };
 
 /**
